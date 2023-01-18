@@ -1,5 +1,8 @@
 package com.dobugs.yologaauthenticationapi.support;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -8,6 +11,8 @@ import lombok.Getter;
 @Getter
 @Component
 public class KakaoProvider implements OAuthProvider {
+
+    private static final Map<String, String> params = new HashMap<>();
 
     private final String clientId;
     private final String authUrl;
@@ -24,7 +29,7 @@ public class KakaoProvider implements OAuthProvider {
     @Override
     public String generateOAuthUrl(final String redirectUrl) {
         params.put("redirect_uri", redirectUrl);
-        return authUrl + "?" + concatParams();
+        return authUrl + "?" + concatParams(params);
     }
 
     private void setParams() {
