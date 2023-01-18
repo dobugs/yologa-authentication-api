@@ -20,7 +20,7 @@ public class AuthController {
     private final AuthService authService;
 
     @GetMapping("/oauth2/login")
-    public ResponseEntity<OAuthLinkResponse> oauthLogin(@ModelAttribute final OAuthLinkRequest request) {
+    public ResponseEntity<OAuthLinkResponse> generateOAuthUrl(@ModelAttribute final OAuthLinkRequest request) {
         final OAuthLinkResponse response = authService.generateOAuthUrl(request);
         return ResponseEntity.ok(response);
     }
