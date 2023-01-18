@@ -7,22 +7,16 @@ import lombok.Getter;
 
 @Getter
 @Component
-public class GoogleProvider implements OAuthProvider {
+public class KakaoProvider implements OAuthProvider {
 
     private final String clientId;
-    private final String clientSecret;
-    private final String scope;
     private final String authUrl;
 
-    public GoogleProvider(
-        @Value("${oauth2.google.client.id}") final String clientId,
-        @Value("${oauth2.google.client.secret}") final String clientSecret,
-        @Value("${oauth2.google.scope}") final String scope,
-        @Value("${oauth2.google.url.auth}") final String authUrl
+    public KakaoProvider(
+        @Value("${oauth2.kakao.client.id}") final String clientId,
+        @Value("${oauth2.kakao.url.auth}") final String authUrl
     ) {
         this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.scope = scope;
         this.authUrl = authUrl;
         setParams();
     }
@@ -34,8 +28,7 @@ public class GoogleProvider implements OAuthProvider {
     }
 
     private void setParams() {
-        params.put("scope", scope);
-        params.put("response_type", "code");
         params.put("client_id", clientId);
+        params.put("response_type", "code");
     }
 }

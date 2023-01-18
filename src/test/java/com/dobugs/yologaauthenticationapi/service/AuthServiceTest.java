@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthLinkRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.support.GoogleProvider;
+import com.dobugs.yologaauthenticationapi.support.KakaoProvider;
 
 @DisplayName("Auth 서비스 테스트")
 class AuthServiceTest {
@@ -25,7 +26,9 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         final GoogleProvider googleProvider = new GoogleProvider(CLIENT_ID, CLIENT_SECRET, SCOPE, AUTH_URL);
-        authService = new AuthService(googleProvider);
+        final KakaoProvider kakaoProvider = new KakaoProvider(CLIENT_ID, AUTH_URL);
+
+        authService = new AuthService(googleProvider, kakaoProvider);
     }
 
     @DisplayName("OAuth URL 생성 테스트")
@@ -36,6 +39,17 @@ class AuthServiceTest {
         @Test
         void generateGoogleOAuthUrl() {
             final String provider = "google";
+            final OAuthLinkRequest request = new OAuthLinkRequest(provider, YOLOGA_URL);
+
+            final OAuthLinkResponse response = authService.generateOAuthUrl(request);
+
+            assertThat(response.oauthLoginLink()).contains(YOLOGA_URL);
+        }
+
+        @DisplayName("카카오 OAuth URL 을 생성한다")
+        @Test
+        void generateKakaoOAuthUrl() {
+            final String provider = "kakao";
             final OAuthLinkRequest request = new OAuthLinkRequest(provider, YOLOGA_URL);
 
             final OAuthLinkResponse response = authService.generateOAuthUrl(request);
