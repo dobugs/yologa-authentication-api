@@ -10,26 +10,19 @@ import org.junit.jupiter.api.Test;
 
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthLinkRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
-import com.dobugs.yologaauthenticationapi.support.GoogleProvider;
-import com.dobugs.yologaauthenticationapi.support.KakaoProvider;
+import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
 
 @DisplayName("Auth 서비스 테스트")
 class AuthServiceTest {
 
     private static final String YOLOGA_URL = "http://yologa.dobugs.co.kr";
-    private static final String CLIENT_ID = "clientId";
-    private static final String CLIENT_SECRET = "clientSecret";
-    private static final String SCOPE = "scope";
-    private static final String AUTH_URL = "authUrl";
 
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        final GoogleProvider googleProvider = new GoogleProvider(CLIENT_ID, CLIENT_SECRET, SCOPE, AUTH_URL);
-        final KakaoProvider kakaoProvider = new KakaoProvider(CLIENT_ID, AUTH_URL);
-
-        authService = new AuthService(googleProvider, kakaoProvider);
+        final OAuthProvider provider = new FakeProvider();
+        authService = new AuthService(provider, provider);
     }
 
     @DisplayName("OAuth URL 생성 테스트")
