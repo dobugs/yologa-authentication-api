@@ -1,5 +1,8 @@
 package com.dobugs.yologaauthenticationapi.domain;
 
+import lombok.Getter;
+
+@Getter
 public enum Provider {
 
     GOOGLE("google"),

@@ -24,9 +24,12 @@ public class AuthService {
     }
 
     private OAuthProvider selectProvider(final String provider) {
-        if (Provider.GOOGLE.name().equals(provider)) {
+        if (Provider.GOOGLE.getName().equals(provider)) {
             return googleProvider;
         }
-        return kakaoProvider;
+        if (Provider.KAKAO.getName().equals(provider)) {
+            return kakaoProvider;
+        }
+        throw new IllegalArgumentException(String.format("잘못된 provider 입니다. [%s]", provider));
     }
 }

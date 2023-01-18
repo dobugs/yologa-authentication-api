@@ -1,6 +1,7 @@
 package com.dobugs.yologaauthenticationapi.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,6 +56,17 @@ class AuthServiceTest {
             final OAuthLinkResponse response = authService.generateOAuthUrl(request);
 
             assertThat(response.oauthLoginLink()).contains(YOLOGA_URL);
+        }
+
+        @DisplayName("존재하지 않는 provider 를 요청할 경우 예외가 발생한다")
+        @Test
+        void notExistProvider() {
+            final String provider = "notExistProvider";
+            final OAuthLinkRequest request = new OAuthLinkRequest(provider, YOLOGA_URL);
+
+            assertThatThrownBy(() -> authService.generateOAuthUrl(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("잘못된 provider 입니다.");
         }
     }
 }
