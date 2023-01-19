@@ -1,4 +1,4 @@
-package com.dobugs.yologaauthenticationapi.support;
+package com.dobugs.yologaauthenticationapi.support.google;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+
+import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
 
 import lombok.Getter;
 

@@ -1,4 +1,4 @@
-package com.dobugs.yologaauthenticationapi.support;
+package com.dobugs.yologaauthenticationapi.support.kakao;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
+
+import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
 
 import lombok.Getter;
 

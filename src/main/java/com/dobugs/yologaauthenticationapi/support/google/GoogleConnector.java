@@ -1,4 +1,4 @@
-package com.dobugs.yologaauthenticationapi.support;
+package com.dobugs.yologaauthenticationapi.support.google;
 
 import java.util.Optional;
 
@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
+import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleTokenResponse;
 
 import lombok.Getter;
