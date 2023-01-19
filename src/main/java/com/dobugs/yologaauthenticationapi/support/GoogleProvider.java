@@ -4,7 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import lombok.Getter;
 
@@ -42,6 +47,32 @@ public class GoogleProvider implements OAuthProvider {
     public String generateOAuthUrl(final String redirectUrl) {
         params.put("redirect_uri", redirectUrl);
         return authUrl + "?" + concatParams(params);
+    }
+
+    public HttpEntity<MultiValueMap<String, String>> createEntity(
+        final String authorizationCode,
+        final String redirectUrl
+    ) {
+        return new HttpEntity<>(
+            createBody(authorizationCode, redirectUrl),
+            createHeaders()
+        );
+    }
+
+    private MultiValueMap<String, String> createBody(final String authorizationCode, final String redirectUrl) {
+        final MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("code", authorizationCode);
+        body.add("client_id", clientId);
+        body.add("client_secret", clientSecret);
+        body.add("redirect_uri", redirectUrl);
+        body.add("grant_type", grantType);
+        return body;
+    }
+
+    private HttpHeaders createHeaders() {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        return headers;
     }
 
     private void setParams() {
