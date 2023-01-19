@@ -5,7 +5,6 @@ import java.util.Optional;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
@@ -18,8 +17,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Component
 public class GoogleConnector implements OAuthConnector {
-
-    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
 
     private final OAuthProvider googleProvider;
 

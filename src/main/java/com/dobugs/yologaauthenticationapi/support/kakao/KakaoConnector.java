@@ -1,7 +1,6 @@
 package com.dobugs.yologaauthenticationapi.support.kakao;
 
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
@@ -13,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Component
 public class KakaoConnector implements OAuthConnector {
-
-    private static final RestTemplate REST_TEMPLATE = new RestTemplate();
 
     private final OAuthProvider kakaoProvider;
 
