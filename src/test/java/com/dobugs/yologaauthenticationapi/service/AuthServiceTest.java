@@ -2,16 +2,21 @@ package com.dobugs.yologaauthenticationapi.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthLinkRequest;
+import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
+import com.dobugs.yologaauthenticationapi.support.GoogleConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
 
+@ExtendWith(MockitoExtension.class)
 @DisplayName("Auth 서비스 테스트")
 class AuthServiceTest {
 
@@ -22,7 +27,8 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         final OAuthProvider provider = new FakeProvider();
-        authService = new AuthService(provider, provider);
+        final GoogleConnector googleConnector = mock(GoogleConnector.class);
+        authService = new AuthService(provider, provider, googleConnector);
     }
 
     @DisplayName("OAuth URL 생성 테스트")
@@ -33,7 +39,7 @@ class AuthServiceTest {
         @Test
         void generateGoogleOAuthUrl() {
             final String provider = "google";
-            final OAuthLinkRequest request = new OAuthLinkRequest(provider, YOLOGA_URL);
+            final OAuthRequest request = new OAuthRequest(provider, YOLOGA_URL);
 
             final OAuthLinkResponse response = authService.generateOAuthUrl(request);
 
@@ -44,7 +50,7 @@ class AuthServiceTest {
         @Test
         void generateKakaoOAuthUrl() {
             final String provider = "kakao";
-            final OAuthLinkRequest request = new OAuthLinkRequest(provider, YOLOGA_URL);
+            final OAuthRequest request = new OAuthRequest(provider, YOLOGA_URL);
 
             final OAuthLinkResponse response = authService.generateOAuthUrl(request);
 
@@ -55,7 +61,7 @@ class AuthServiceTest {
         @Test
         void notExistProvider() {
             final String provider = "notExistProvider";
-            final OAuthLinkRequest request = new OAuthLinkRequest(provider, YOLOGA_URL);
+            final OAuthRequest request = new OAuthRequest(provider, YOLOGA_URL);
 
             assertThatThrownBy(() -> authService.generateOAuthUrl(request))
                 .isInstanceOf(IllegalArgumentException.class)
