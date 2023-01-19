@@ -1,4 +1,4 @@
 package com.dobugs.yologaauthenticationapi.support.dto.response;
 
-public record GoogleTokenResponse(String accessToken) {
+public record TokenResponse(String accessToken) {
 }

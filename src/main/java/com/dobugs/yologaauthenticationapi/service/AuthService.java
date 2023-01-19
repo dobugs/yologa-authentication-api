@@ -29,11 +29,11 @@ public class AuthService {
 
     @Transactional
     public OAuthTokenResponse login(final OAuthRequest request, final OAuthCodeRequest codeRequest) {
-        final String accessToken = googleConnector.requestAccessToken(
+        final OAuthConnector oAuthConnector = selectConnector(request.provider());
+        final String accessToken = oAuthConnector.requestAccessToken(
             codeRequest.authorizationCode(),
             request.redirect_url()
         );
-
         return null;
     }
 

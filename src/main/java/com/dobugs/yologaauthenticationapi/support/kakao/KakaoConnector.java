@@ -1,9 +1,14 @@
 package com.dobugs.yologaauthenticationapi.support.kakao;
 
+import java.util.Optional;
+
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
+import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +27,25 @@ public class KakaoConnector implements OAuthConnector {
 
     @Override
     public String requestAccessToken(final String authorizationCode, final String redirectUrl) {
-        return null;
+        final TokenResponse response = connect(authorizationCode, redirectUrl);
+        return response.accessToken();
+    }
+
+    private TokenResponse connect(final String authorizationCode, final String redirectUrl) {
+        final ResponseEntity<TokenResponse> response = REST_TEMPLATE.postForEntity(
+            kakaoProvider.getAccessTokenUrl(),
+            kakaoProvider.createEntity(authorizationCode, redirectUrl),
+            TokenResponse.class
+        );
+        validateConnectionResponseIsSuccess(response);
+        return Optional.ofNullable(response.getBody())
+            .orElseThrow(() -> new IllegalArgumentException("kakao 와의 연결에 실패하였습니다."));
+    }
+
+    private void validateConnectionResponseIsSuccess(final ResponseEntity<TokenResponse> response) {
+        final HttpStatusCode statusCode = response.getStatusCode();
+        if (!statusCode.is2xxSuccessful()) {
+            throw new IllegalArgumentException(String.format("kakao 와의 연결에 실패하였습니다. [%s]", statusCode));
+        }
     }
 }

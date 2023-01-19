@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
-import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -27,23 +27,23 @@ public class GoogleConnector implements OAuthConnector {
 
     @Override
     public String requestAccessToken(final String authorizationCode, final String redirectUrl) {
-        final GoogleTokenResponse response = connectGoogle(authorizationCode, redirectUrl);
+        final TokenResponse response = connect(authorizationCode, redirectUrl);
         return response.accessToken();
     }
 
-    private GoogleTokenResponse connectGoogle(final String authorizationCode, final String redirectUrl) {
-        final ResponseEntity<GoogleTokenResponse> googleResponse = REST_TEMPLATE.postForEntity(
+    private TokenResponse connect(final String authorizationCode, final String redirectUrl) {
+        final ResponseEntity<TokenResponse> response = REST_TEMPLATE.postForEntity(
             googleProvider.getAccessTokenUrl(),
             googleProvider.createEntity(authorizationCode, redirectUrl),
-            GoogleTokenResponse.class
+            TokenResponse.class
         );
-        validateGoogleResponseIsSuccess(googleResponse);
-        return Optional.ofNullable(googleResponse.getBody())
+        validateConnectionResponseIsSuccess(response);
+        return Optional.ofNullable(response.getBody())
             .orElseThrow(() -> new IllegalArgumentException("Google 과의 연결에 실패하였습니다."));
     }
 
-    private void validateGoogleResponseIsSuccess(final ResponseEntity<GoogleTokenResponse> googleResponse) {
-        final HttpStatusCode statusCode = googleResponse.getStatusCode();
+    private void validateConnectionResponseIsSuccess(final ResponseEntity<TokenResponse> response) {
+        final HttpStatusCode statusCode = response.getStatusCode();
         if (!statusCode.is2xxSuccessful()) {
             throw new IllegalArgumentException(String.format("Google 과의 연결에 실패하였습니다. [%s]", statusCode));
         }

@@ -5,7 +5,10 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
@@ -26,8 +29,8 @@ public class KakaoProvider implements OAuthProvider {
     public KakaoProvider(
         @Value("${oauth2.kakao.client.id}") final String clientId,
         @Value("${oauth2.kakao.url.auth}") final String authUrl,
-        @Value("${oauth2.google.url.token}") final String accessTokenUrl,
-        @Value("${oauth2.google.grant-type}") final String grantType
+        @Value("${oauth2.kakao.url.token}") final String accessTokenUrl,
+        @Value("${oauth2.kakao.grant-type}") final String grantType
     ) {
         this.clientId = clientId;
         this.authUrl = authUrl;
@@ -47,7 +50,25 @@ public class KakaoProvider implements OAuthProvider {
         final String authorizationCode,
         final String redirectUrl
     ) {
-        return null;
+        return new HttpEntity<>(
+            createBody(authorizationCode, redirectUrl),
+            createHeaders()
+        );
+    }
+
+    private MultiValueMap<String, String> createBody(final String authorizationCode, final String redirectUrl) {
+        final MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("code", authorizationCode);
+        body.add("client_id", clientId);
+        body.add("redirect_uri", redirectUrl);
+        body.add("grant_type", grantType);
+        return body;
+    }
+
+    private HttpHeaders createHeaders() {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        return headers;
     }
 
     private void setParams() {
