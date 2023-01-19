@@ -49,6 +49,7 @@ public class GoogleProvider implements OAuthProvider {
         return authUrl + "?" + concatParams(params);
     }
 
+    @Override
     public HttpEntity<MultiValueMap<String, String>> createEntity(
         final String authorizationCode,
         final String redirectUrl

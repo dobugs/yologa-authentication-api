@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.util.MultiValueMap;
+
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
 
 public class FakeProvider implements OAuthProvider {
@@ -22,6 +25,19 @@ public class FakeProvider implements OAuthProvider {
     public String generateOAuthUrl(final String redirectUrl) {
         params.put("redirect_uri", redirectUrl);
         return AUTH_URL + "?" + concatParams();
+    }
+
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createEntity(
+        final String authorizationCode,
+        final String redirectUrl
+    ) {
+        return null;
+    }
+
+    @Override
+    public String getAccessTokenUrl() {
+        return null;
     }
 
     public String concatParams() {

@@ -15,12 +15,18 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 @Component
-public class GoogleConnector {
+public class GoogleConnector implements OAuthConnector {
 
     private static final RestTemplate REST_TEMPLATE = new RestTemplate();
 
-    private final GoogleProvider provider;
+    private final OAuthProvider googleProvider;
 
+    @Override
+    public String generateOAuthUrl(final String redirectUrl) {
+        return googleProvider.generateOAuthUrl(redirectUrl);
+    }
+
+    @Override
     public String requestAccessToken(final String authorizationCode, final String redirectUrl) {
         final GoogleTokenResponse response = connectGoogle(authorizationCode, redirectUrl);
         return response.accessToken();
@@ -28,8 +34,8 @@ public class GoogleConnector {
 
     private GoogleTokenResponse connectGoogle(final String authorizationCode, final String redirectUrl) {
         final ResponseEntity<GoogleTokenResponse> googleResponse = REST_TEMPLATE.postForEntity(
-            provider.getAccessTokenUrl(),
-            provider.createEntity(authorizationCode, redirectUrl),
+            googleProvider.getAccessTokenUrl(),
+            googleProvider.createEntity(authorizationCode, redirectUrl),
             GoogleTokenResponse.class
         );
         validateGoogleResponseIsSuccess(googleResponse);

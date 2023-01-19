@@ -8,8 +8,7 @@ import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
-import com.dobugs.yologaauthenticationapi.support.GoogleConnector;
-import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
+import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,13 +17,12 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class AuthService {
 
-    private final OAuthProvider googleProvider;
-    private final OAuthProvider kakaoProvider;
-    private final GoogleConnector googleConnector;
+    private final OAuthConnector googleConnector;
+    private final OAuthConnector kakaoConnector;
 
     public OAuthLinkResponse generateOAuthUrl(final OAuthRequest request) {
-        final OAuthProvider oAuthProvider = selectProvider(request.provider());
-        final String oAuthUrl = oAuthProvider.generateOAuthUrl(request.redirect_url());
+        final OAuthConnector oAuthConnector = selectConnector(request.provider());
+        final String oAuthUrl = oAuthConnector.generateOAuthUrl(request.redirect_url());
 
         return new OAuthLinkResponse(oAuthUrl);
     }
@@ -39,12 +37,12 @@ public class AuthService {
         return null;
     }
 
-    private OAuthProvider selectProvider(final String provider) {
+    private OAuthConnector selectConnector(final String provider) {
         if (Provider.GOOGLE.getName().equals(provider)) {
-            return googleProvider;
+            return googleConnector;
         }
         if (Provider.KAKAO.getName().equals(provider)) {
-            return kakaoProvider;
+            return kakaoConnector;
         }
         throw new IllegalArgumentException(String.format("잘못된 provider 입니다. [%s]", provider));
     }

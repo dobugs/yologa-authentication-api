@@ -2,7 +2,6 @@ package com.dobugs.yologaauthenticationapi.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,8 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
-import com.dobugs.yologaauthenticationapi.support.GoogleConnector;
-import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
+import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Auth 서비스 테스트")
@@ -26,9 +24,8 @@ class AuthServiceTest {
 
     @BeforeEach
     void setUp() {
-        final OAuthProvider provider = new FakeProvider();
-        final GoogleConnector googleConnector = mock(GoogleConnector.class);
-        authService = new AuthService(provider, provider, googleConnector);
+        final OAuthConnector connector = new FakeConnector();
+        authService = new AuthService(connector, connector);
     }
 
     @DisplayName("OAuth URL 생성 테스트")
