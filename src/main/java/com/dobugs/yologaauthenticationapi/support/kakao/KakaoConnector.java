@@ -2,7 +2,6 @@ package com.dobugs.yologaauthenticationapi.support.kakao;
 
 import java.util.Optional;
 
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
@@ -40,12 +39,5 @@ public class KakaoConnector implements OAuthConnector {
         validateConnectionResponseIsSuccess(response);
         return Optional.ofNullable(response.getBody())
             .orElseThrow(() -> new IllegalArgumentException("kakao 와의 연결에 실패하였습니다."));
-    }
-
-    private void validateConnectionResponseIsSuccess(final ResponseEntity<TokenResponse> response) {
-        final HttpStatusCode statusCode = response.getStatusCode();
-        if (!statusCode.is2xxSuccessful()) {
-            throw new IllegalArgumentException(String.format("kakao 와의 연결에 실패하였습니다. [%s]", statusCode));
-        }
     }
 }
