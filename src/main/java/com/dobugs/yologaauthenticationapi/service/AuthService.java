@@ -1,5 +1,8 @@
 package com.dobugs.yologaauthenticationapi.service;
 
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,7 +25,8 @@ public class AuthService {
 
     public OAuthLinkResponse generateOAuthUrl(final OAuthRequest request) {
         final OAuthConnector oAuthConnector = selectConnector(request.provider());
-        final String oAuthUrl = oAuthConnector.generateOAuthUrl(request.redirect_url());
+        final String redirectUrl = decode(request.redirect_url());
+        final String oAuthUrl = oAuthConnector.generateOAuthUrl(redirectUrl);
 
         return new OAuthLinkResponse(oAuthUrl);
     }
@@ -30,10 +34,9 @@ public class AuthService {
     @Transactional
     public OAuthTokenResponse login(final OAuthRequest request, final OAuthCodeRequest codeRequest) {
         final OAuthConnector oAuthConnector = selectConnector(request.provider());
-        final String accessToken = oAuthConnector.requestAccessToken(
-            codeRequest.authorizationCode(),
-            request.redirect_url()
-        );
+        final String redirectUrl = decode(request.redirect_url());
+
+        final String accessToken = oAuthConnector.requestAccessToken(codeRequest.authorizationCode(), redirectUrl);
         return null;
     }
 
@@ -45,5 +48,9 @@ public class AuthService {
             return kakaoConnector;
         }
         throw new IllegalArgumentException(String.format("잘못된 provider 입니다. [%s]", provider));
+    }
+
+    private String decode(final String encoded) {
+        return URLDecoder.decode(encoded, StandardCharsets.UTF_8);
     }
 }
