@@ -1,0 +1,4 @@
+[submodule "src/main/resources/yologa-security"]
+	path = src/main/resources/yologa-security
+	url = https://github.com/dobugs/yologa-security.git
+	branch = yologa-authentication-api
