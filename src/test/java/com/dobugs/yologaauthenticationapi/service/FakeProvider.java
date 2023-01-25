@@ -38,15 +38,7 @@ public class FakeProvider implements OAuthProvider {
     }
 
     @Override
-    public HttpEntity<MultiValueMap<String, String>> createEntity(
-        final String authorizationCode,
-        final String redirectUrl
-    ) {
-        return null;
-    }
-
-    @Override
-    public String getAccessTokenUrl() {
+    public HttpEntity<MultiValueMap<String, String>> createEntity() {
         return null;
     }
 

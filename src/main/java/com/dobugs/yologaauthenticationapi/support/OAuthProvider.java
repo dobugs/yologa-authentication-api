@@ -12,9 +12,7 @@ public interface OAuthProvider {
 
     String generateTokenUrl(String authorizationCode, String redirectUrl);
 
-    HttpEntity<MultiValueMap<String, String>> createEntity(String authorizationCode, String redirectUrl);
-
-    String getAccessTokenUrl();
+    HttpEntity<MultiValueMap<String, String>> createEntity();
 
     default String concatParams(final Map<String, String> params) {
         return params.entrySet()

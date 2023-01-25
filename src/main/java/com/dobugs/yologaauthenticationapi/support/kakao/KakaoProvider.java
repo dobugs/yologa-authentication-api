@@ -8,7 +8,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
@@ -57,23 +56,10 @@ public class KakaoProvider implements OAuthProvider {
     }
 
     @Override
-    public HttpEntity<MultiValueMap<String, String>> createEntity(
-        final String authorizationCode,
-        final String redirectUrl
-    ) {
+    public HttpEntity<MultiValueMap<String, String>> createEntity() {
         return new HttpEntity<>(
-            createBody(authorizationCode, redirectUrl),
             createHeaders()
         );
-    }
-
-    private MultiValueMap<String, String> createBody(final String authorizationCode, final String redirectUrl) {
-        final MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("code", authorizationCode);
-        body.add("client_id", clientId);
-        body.add("redirect_uri", redirectUrl);
-        body.add("grant_type", grantType);
-        return body;
     }
 
     private HttpHeaders createHeaders() {

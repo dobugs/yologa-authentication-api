@@ -33,7 +33,7 @@ public class KakaoConnector implements OAuthConnector {
     private TokenResponse connect(final String authorizationCode, final String redirectUrl) {
         final ResponseEntity<TokenResponse> response = REST_TEMPLATE.postForEntity(
             kakaoProvider.generateTokenUrl(authorizationCode, redirectUrl),
-            kakaoProvider.createEntity(authorizationCode, redirectUrl),
+            kakaoProvider.createEntity(),
             TokenResponse.class
         );
         validateConnectionResponseIsSuccess(response);

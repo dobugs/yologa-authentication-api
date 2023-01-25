@@ -8,7 +8,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
@@ -67,10 +66,7 @@ public class GoogleProvider implements OAuthProvider {
     }
 
     @Override
-    public HttpEntity<MultiValueMap<String, String>> createEntity(
-        final String authorizationCode,
-        final String redirectUrl
-    ) {
+    public HttpEntity<MultiValueMap<String, String>> createEntity() {
         return new HttpEntity<>(
             createHeaders()
         );

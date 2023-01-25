@@ -33,7 +33,7 @@ public class GoogleConnector implements OAuthConnector {
     private TokenResponse connect(final String authorizationCode, final String redirectUrl) {
         final ResponseEntity<TokenResponse> response = REST_TEMPLATE.postForEntity(
             googleProvider.generateTokenUrl(authorizationCode, redirectUrl),
-            googleProvider.createEntity(authorizationCode, redirectUrl),
+            googleProvider.createEntity(),
             TokenResponse.class
         );
         validateConnectionResponseIsSuccess(response);
