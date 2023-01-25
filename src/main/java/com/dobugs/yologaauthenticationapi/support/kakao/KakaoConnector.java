@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
-import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.KakaoTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
 
 import lombok.Getter;
@@ -28,22 +28,22 @@ public class KakaoConnector implements OAuthConnector {
 
     @Override
     public TokenResponse requestAccessToken(final String authorizationCode, final String redirectUrl) {
-        final GoogleTokenResponse response = connect(authorizationCode, redirectUrl);
+        final KakaoTokenResponse response = connect(authorizationCode, redirectUrl);
         return new TokenResponse(response.access_token(), response.refresh_token());
     }
 
-    private GoogleTokenResponse connect(final String authorizationCode, final String redirectUrl) {
-        final ResponseEntity<GoogleTokenResponse> response = REST_TEMPLATE.postForEntity(
+    private KakaoTokenResponse connect(final String authorizationCode, final String redirectUrl) {
+        final ResponseEntity<KakaoTokenResponse> response = REST_TEMPLATE.postForEntity(
             kakaoProvider.generateTokenUrl(authorizationCode, redirectUrl),
             kakaoProvider.createEntity(),
-            GoogleTokenResponse.class
+            KakaoTokenResponse.class
         );
         validateConnectionResponseIsSuccess(response);
         return Optional.ofNullable(response.getBody())
             .orElseThrow(() -> new IllegalArgumentException("kakao 와의 연결에 실패하였습니다."));
     }
 
-    private void validateConnectionResponseIsSuccess(final ResponseEntity<GoogleTokenResponse> response) {
+    private void validateConnectionResponseIsSuccess(final ResponseEntity<KakaoTokenResponse> response) {
         final HttpStatusCode statusCode = response.getStatusCode();
         if (!statusCode.is2xxSuccessful()) {
             throw new IllegalArgumentException(String.format("kakao 와의 연결에 실패하였습니다. [%s]", statusCode));
