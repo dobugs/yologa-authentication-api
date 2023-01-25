@@ -45,10 +45,12 @@ class AuthControllerTest {
     @Test
     void generateOAuthUrl() throws Exception {
         final String redirectUrl = "redirectUrl";
+        final String referrer = "referrer";
 
         final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("provider", "google");
         params.add("redirect_url", redirectUrl);
+        params.add("referrer", referrer);
 
         final OAuthLinkResponse response = new OAuthLinkResponse(redirectUrl);
         given(authService.generateOAuthUrl(any())).willReturn(response);
