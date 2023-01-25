@@ -14,7 +14,7 @@ public class FakeConnector implements OAuthConnector {
     }
 
     @Override
-    public TokenResponse requestAccessToken(final String authorizationCode, final String redirectUrl) {
+    public TokenResponse requestToken(final String authorizationCode, final String redirectUrl) {
         return null;
     }
 }

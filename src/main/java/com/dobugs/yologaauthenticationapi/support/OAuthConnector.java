@@ -10,5 +10,5 @@ public interface OAuthConnector {
 
     String generateOAuthUrl(String redirectUrl, String referrer);
 
-    TokenResponse requestAccessToken(String authorizationCode, String redirectUrl);
+    TokenResponse requestToken(String authorizationCode, String redirectUrl);
 }

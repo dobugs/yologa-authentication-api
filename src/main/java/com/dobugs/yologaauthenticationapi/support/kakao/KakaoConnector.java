@@ -27,7 +27,7 @@ public class KakaoConnector implements OAuthConnector {
     }
 
     @Override
-    public TokenResponse requestAccessToken(final String authorizationCode, final String redirectUrl) {
+    public TokenResponse requestToken(final String authorizationCode, final String redirectUrl) {
         final KakaoTokenResponse response = connect(authorizationCode, redirectUrl);
         return new TokenResponse(response.access_token(), response.refresh_token());
     }

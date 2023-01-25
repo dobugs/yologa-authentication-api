@@ -40,7 +40,7 @@ public class AuthService {
         final String redirectUrl = decode(request.redirect_url());
         final String authorizationCode = decode(codeRequest.authorizationCode());
 
-        final TokenResponse tokenResponse = oAuthConnector.requestAccessToken(authorizationCode, redirectUrl);
+        final TokenResponse tokenResponse = oAuthConnector.requestToken(authorizationCode, redirectUrl);
         return new OAuthTokenResponse(tokenResponse.accessToken(), tokenResponse.refreshToken());
     }
 
