@@ -23,6 +23,7 @@ public class GoogleProvider implements OAuthProvider {
 
     private final String clientId;
     private final String clientSecret;
+    private final String accessType;
     private final String scope;
     private final String authUrl;
     private final String accessTokenUrl;
@@ -32,12 +33,14 @@ public class GoogleProvider implements OAuthProvider {
         @Value("${oauth2.google.client.id}") final String clientId,
         @Value("${oauth2.google.client.secret}") final String clientSecret,
         @Value("${oauth2.google.scope}") final String scope,
+        @Value("${oauth2.google.access-type}") final String accessType,
         @Value("${oauth2.google.url.auth}") final String authUrl,
         @Value("${oauth2.google.url.token}") final String accessTokenUrl,
         @Value("${oauth2.google.grant-type}") final String grantType
     ) {
         this.clientId = clientId;
         this.clientSecret = clientSecret;
+        this.accessType = accessType;
         this.scope = scope;
         this.authUrl = authUrl;
         this.accessTokenUrl = accessTokenUrl;
@@ -81,6 +84,7 @@ public class GoogleProvider implements OAuthProvider {
 
     private void setParams() {
         params.put("scope", scope);
+        params.put("access_type", accessType);
         params.put("response_type", "code");
         params.put("client_id", clientId);
     }
