@@ -18,8 +18,6 @@ import lombok.Getter;
 @Component
 public class KakaoProvider implements OAuthProvider {
 
-    private static final Map<String, String> params = new HashMap<>();
-
     private final String clientId;
     private final String authUrl;
     private final String accessTokenUrl;
@@ -35,12 +33,14 @@ public class KakaoProvider implements OAuthProvider {
         this.authUrl = authUrl;
         this.accessTokenUrl = accessTokenUrl;
         this.grantType = grantType;
-        setParams();
     }
 
     @Override
     public String generateOAuthUrl(final String redirectUrl, final String referrer) {
+        final Map<String, String> params = new HashMap<>();
+        params.put("client_id", clientId);
         params.put("redirect_uri", redirectUrl);
+        params.put("response_type", "code");
         params.put("referrer", referrer);
         return authUrl + "?" + concatParams(params);
     }
@@ -66,10 +66,5 @@ public class KakaoProvider implements OAuthProvider {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return headers;
-    }
-
-    private void setParams() {
-        params.put("client_id", clientId);
-        params.put("response_type", "code");
     }
 }

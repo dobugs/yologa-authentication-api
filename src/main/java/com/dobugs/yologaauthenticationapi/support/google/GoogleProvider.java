@@ -18,8 +18,6 @@ import lombok.Getter;
 @Component
 public class GoogleProvider implements OAuthProvider {
 
-    private static final Map<String, String> params = new HashMap<>();
-
     private final String clientId;
     private final String clientSecret;
     private final String accessType;
@@ -44,12 +42,16 @@ public class GoogleProvider implements OAuthProvider {
         this.authUrl = authUrl;
         this.accessTokenUrl = accessTokenUrl;
         this.grantType = grantType;
-        setParams();
     }
 
     @Override
     public String generateOAuthUrl(final String redirectUrl, final String referrer) {
+        final Map<String, String> params = new HashMap<>();
+        params.put("client_id", clientId);
         params.put("redirect_uri", redirectUrl);
+        params.put("response_type", "code");
+        params.put("scope", scope);
+        params.put("access_type", accessType);
         params.put("referrer", referrer);
         return authUrl + "?" + concatParams(params);
     }
@@ -76,12 +78,5 @@ public class GoogleProvider implements OAuthProvider {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return headers;
-    }
-
-    private void setParams() {
-        params.put("scope", scope);
-        params.put("access_type", accessType);
-        params.put("response_type", "code");
-        params.put("client_id", clientId);
     }
 }

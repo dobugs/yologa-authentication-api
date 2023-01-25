@@ -11,20 +11,18 @@ import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
 
 public class FakeProvider implements OAuthProvider {
 
-    private final Map<String, String> params = new HashMap<>();
-
     private static final String CLIENT_ID = "clientId";
     private static final String SCOPE = "scope";
     private static final String AUTH_URL = "authUrl";
     private static final String TOKEN_URL = "tokenUrl";
 
-    public FakeProvider() {
-        setParams();
-    }
-
     @Override
     public String generateOAuthUrl(final String redirectUrl, final String referrer) {
+        final Map<String, String> params = new HashMap<>();
+        params.put("client_id", CLIENT_ID);
         params.put("redirect_uri", redirectUrl);
+        params.put("response_type", "code");
+        params.put("scope", SCOPE);
         params.put("referrer", referrer);
         return AUTH_URL + "?" + concatParams(params);
     }
@@ -47,11 +45,5 @@ public class FakeProvider implements OAuthProvider {
             .stream()
             .map(entry -> entry.getKey() + "=" + entry.getValue())
             .collect(Collectors.joining("&"));
-    }
-
-    private void setParams() {
-        params.put("scope", SCOPE);
-        params.put("response_type", "code");
-        params.put("client_id", CLIENT_ID);
     }
 }
