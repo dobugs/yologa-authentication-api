@@ -16,6 +16,7 @@ public class FakeProvider implements OAuthProvider {
     private static final String CLIENT_ID = "clientId";
     private static final String SCOPE = "scope";
     private static final String AUTH_URL = "authUrl";
+    private static final String TOKEN_URL = "tokenUrl";
 
     public FakeProvider() {
         setParams();
@@ -25,7 +26,15 @@ public class FakeProvider implements OAuthProvider {
     public String generateOAuthUrl(final String redirectUrl, final String referrer) {
         params.put("redirect_uri", redirectUrl);
         params.put("referrer", referrer);
-        return AUTH_URL + "?" + concatParams();
+        return AUTH_URL + "?" + concatParams(params);
+    }
+
+    @Override
+    public String generateTokenUrl(final String authorizationCode, final String redirectUrl) {
+        final Map<String, String> params = new HashMap<>();
+        params.put("code", authorizationCode);
+        params.put("redirect_url", redirectUrl);
+        return TOKEN_URL + "?" + concatParams(params);
     }
 
     @Override
@@ -41,7 +50,7 @@ public class FakeProvider implements OAuthProvider {
         return null;
     }
 
-    public String concatParams() {
+    public String concatParams(final Map<String, String> params) {
         return params.entrySet()
             .stream()
             .map(entry -> entry.getKey() + "=" + entry.getValue())

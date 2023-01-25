@@ -56,24 +56,24 @@ public class GoogleProvider implements OAuthProvider {
     }
 
     @Override
+    public String generateTokenUrl(final String authorizationCode, final String redirectUrl) {
+        final Map<String, String> params = new HashMap<>();
+        params.put("code", authorizationCode);
+        params.put("client_id", clientId);
+        params.put("client_secret", clientSecret);
+        params.put("redirect_uri", redirectUrl);
+        params.put("grant_type", grantType);
+        return accessTokenUrl + "?" + concatParams(params);
+    }
+
+    @Override
     public HttpEntity<MultiValueMap<String, String>> createEntity(
         final String authorizationCode,
         final String redirectUrl
     ) {
         return new HttpEntity<>(
-            createBody(authorizationCode, redirectUrl),
             createHeaders()
         );
-    }
-
-    private MultiValueMap<String, String> createBody(final String authorizationCode, final String redirectUrl) {
-        final MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("code", authorizationCode);
-        body.add("client_id", clientId);
-        body.add("client_secret", clientSecret);
-        body.add("redirect_uri", redirectUrl);
-        body.add("grant_type", grantType);
-        return body;
     }
 
     private HttpHeaders createHeaders() {

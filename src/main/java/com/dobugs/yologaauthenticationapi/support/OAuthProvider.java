@@ -10,6 +10,8 @@ public interface OAuthProvider {
 
     String generateOAuthUrl(String redirectUrl, String referrer);
 
+    String generateTokenUrl(String authorizationCode, String redirectUrl);
+
     HttpEntity<MultiValueMap<String, String>> createEntity(String authorizationCode, String redirectUrl);
 
     String getAccessTokenUrl();

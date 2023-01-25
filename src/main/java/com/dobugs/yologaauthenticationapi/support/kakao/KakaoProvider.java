@@ -47,6 +47,16 @@ public class KakaoProvider implements OAuthProvider {
     }
 
     @Override
+    public String generateTokenUrl(final String authorizationCode, final String redirectUrl) {
+        final Map<String, String> params = new HashMap<>();
+        params.put("code", authorizationCode);
+        params.put("client_id", clientId);
+        params.put("redirect_uri", redirectUrl);
+        params.put("grant_type", grantType);
+        return accessTokenUrl + "?" + concatParams(params);
+    }
+
+    @Override
     public HttpEntity<MultiValueMap<String, String>> createEntity(
         final String authorizationCode,
         final String redirectUrl
