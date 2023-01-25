@@ -5,8 +5,14 @@
 :toc: left
 :toclevels: 2
 
-== OAuth2.0 로그인 요청
+== OAuth2.0 로그인 URL 요청
 Request
 include::{snippets}/auth/generate-OAuth-url/http-request.adoc[]
 Response
 include::{snippets}/auth/generate-OAuth-url/http-response.adoc[]
+
+== OAuth2.0 로그인 토큰 요청
+Request
+include::{snippets}/auth/login/http-request.adoc[]
+Response
+include::{snippets}/auth/login/http-response.adoc[]

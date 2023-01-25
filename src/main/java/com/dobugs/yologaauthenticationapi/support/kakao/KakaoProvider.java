@@ -8,7 +8,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
@@ -18,8 +17,6 @@ import lombok.Getter;
 @Getter
 @Component
 public class KakaoProvider implements OAuthProvider {
-
-    private static final Map<String, String> params = new HashMap<>();
 
     private final String clientId;
     private final String authUrl;
@@ -36,44 +33,38 @@ public class KakaoProvider implements OAuthProvider {
         this.authUrl = authUrl;
         this.accessTokenUrl = accessTokenUrl;
         this.grantType = grantType;
-        setParams();
     }
 
     @Override
     public String generateOAuthUrl(final String redirectUrl, final String referrer) {
+        final Map<String, String> params = new HashMap<>();
+        params.put("client_id", clientId);
         params.put("redirect_uri", redirectUrl);
+        params.put("response_type", "code");
         params.put("referrer", referrer);
         return authUrl + "?" + concatParams(params);
     }
 
     @Override
-    public HttpEntity<MultiValueMap<String, String>> createEntity(
-        final String authorizationCode,
-        final String redirectUrl
-    ) {
-        return new HttpEntity<>(
-            createBody(authorizationCode, redirectUrl),
-            createHeaders()
-        );
+    public String generateTokenUrl(final String authorizationCode, final String redirectUrl) {
+        final Map<String, String> params = new HashMap<>();
+        params.put("code", authorizationCode);
+        params.put("client_id", clientId);
+        params.put("redirect_uri", redirectUrl);
+        params.put("grant_type", grantType);
+        return accessTokenUrl + "?" + concatParams(params);
     }
 
-    private MultiValueMap<String, String> createBody(final String authorizationCode, final String redirectUrl) {
-        final MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("code", authorizationCode);
-        body.add("client_id", clientId);
-        body.add("redirect_uri", redirectUrl);
-        body.add("grant_type", grantType);
-        return body;
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createEntity() {
+        return new HttpEntity<>(
+            createHeaders()
+        );
     }
 
     private HttpHeaders createHeaders() {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return headers;
-    }
-
-    private void setParams() {
-        params.put("client_id", clientId);
-        params.put("response_type", "code");
     }
 }
