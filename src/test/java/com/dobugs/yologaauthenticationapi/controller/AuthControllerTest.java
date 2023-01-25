@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
@@ -18,13 +19,17 @@ import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDoc
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import com.dobugs.yologaauthenticationapi.service.AuthService;
+import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
+import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs
@@ -38,6 +43,9 @@ class AuthControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @MockBean
     private AuthService authService;
 
@@ -45,12 +53,11 @@ class AuthControllerTest {
     @Test
     void generateOAuthUrl() throws Exception {
         final String redirectUrl = "redirectUrl";
-        final String referrer = "referrer";
 
         final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("provider", "google");
         params.add("redirect_url", redirectUrl);
-        params.add("referrer", referrer);
+        params.add("referrer", "referrer");
 
         final OAuthLinkResponse response = new OAuthLinkResponse(redirectUrl);
         given(authService.generateOAuthUrl(any())).willReturn(response);
@@ -60,6 +67,35 @@ class AuthControllerTest {
             .andExpect(status().isOk())
             .andDo(document(
                 "auth/generate-OAuth-url",
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()))
+            )
+        ;
+    }
+
+    @DisplayName("OAuth 로그인 시 토큰을 요청한다")
+    @Test
+    void login() throws Exception {
+        final String redirectUrl = "redirectUrl";
+
+        final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("provider", "google");
+        params.add("redirect_url", redirectUrl);
+        params.add("referrer", "referrer");
+
+        final OAuthCodeRequest request = new OAuthCodeRequest("authorizationCode");
+        final String body = objectMapper.writeValueAsString(request);
+
+        final OAuthTokenResponse response = new OAuthTokenResponse("accessToken", "refreshToken");
+        given(authService.login(any(), any())).willReturn(response);
+
+        mockMvc.perform(post(BASIC_URL + "/oauth2/login")
+                .params(params)
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andDo(document(
+                "auth/login",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()))
             )
