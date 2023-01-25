@@ -12,6 +12,7 @@ import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
+import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,9 +38,10 @@ public class AuthService {
     public OAuthTokenResponse login(final OAuthRequest request, final OAuthCodeRequest codeRequest) {
         final OAuthConnector oAuthConnector = selectConnector(request.provider());
         final String redirectUrl = decode(request.redirect_url());
+        final String authorizationCode = decode(codeRequest.authorizationCode());
 
-        final String accessToken = oAuthConnector.requestAccessToken(codeRequest.authorizationCode(), redirectUrl);
-        return null;
+        final TokenResponse tokenResponse = oAuthConnector.requestAccessToken(authorizationCode, redirectUrl);
+        return new OAuthTokenResponse(tokenResponse.accessToken(), tokenResponse.refreshToken());
     }
 
     private OAuthConnector selectConnector(final String provider) {
