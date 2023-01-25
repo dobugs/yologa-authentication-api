@@ -18,8 +18,8 @@ import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 @DisplayName("Auth 서비스 테스트")
 class AuthServiceTest {
 
-    private static final String YOLOGA_URL = "http://yologa.dobugs.co.kr";
-    private static final String REFERRER_URL = "http://yologa.dobugs.co.kr";
+    private static final String YOLOGA_URL = "https://yologa.dobugs.co.kr";
+    private static final String REFERRER_URL = "https://yologa.dobugs.co.kr";
 
     private AuthService authService;
 
