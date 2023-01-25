@@ -20,8 +20,8 @@ public class KakaoConnector implements OAuthConnector {
     private final OAuthProvider kakaoProvider;
 
     @Override
-    public String generateOAuthUrl(final String redirectUrl) {
-        return kakaoProvider.generateOAuthUrl(redirectUrl);
+    public String generateOAuthUrl(final String redirectUrl, final String referrer) {
+        return kakaoProvider.generateOAuthUrl(redirectUrl, referrer);
     }
 
     @Override

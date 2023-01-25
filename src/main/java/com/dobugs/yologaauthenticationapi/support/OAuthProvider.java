@@ -8,7 +8,7 @@ import org.springframework.util.MultiValueMap;
 
 public interface OAuthProvider {
 
-    String generateOAuthUrl(String redirectUrl);
+    String generateOAuthUrl(String redirectUrl, String referrer);
 
     HttpEntity<MultiValueMap<String, String>> createEntity(String authorizationCode, String redirectUrl);
 

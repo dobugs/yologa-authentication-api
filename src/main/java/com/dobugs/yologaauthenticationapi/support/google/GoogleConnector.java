@@ -20,8 +20,8 @@ public class GoogleConnector implements OAuthConnector {
     private final OAuthProvider googleProvider;
 
     @Override
-    public String generateOAuthUrl(final String redirectUrl) {
-        return googleProvider.generateOAuthUrl(redirectUrl);
+    public String generateOAuthUrl(final String redirectUrl, final String referrer) {
+        return googleProvider.generateOAuthUrl(redirectUrl, referrer);
     }
 
     @Override
