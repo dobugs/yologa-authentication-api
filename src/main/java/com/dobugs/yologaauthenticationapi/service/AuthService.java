@@ -26,7 +26,9 @@ public class AuthService {
     public OAuthLinkResponse generateOAuthUrl(final OAuthRequest request) {
         final OAuthConnector oAuthConnector = selectConnector(request.provider());
         final String redirectUrl = decode(request.redirect_url());
-        final String oAuthUrl = oAuthConnector.generateOAuthUrl(redirectUrl);
+        final String referrer = decode(request.referrer());
+
+        final String oAuthUrl = oAuthConnector.generateOAuthUrl(redirectUrl, referrer);
 
         return new OAuthLinkResponse(oAuthUrl);
     }

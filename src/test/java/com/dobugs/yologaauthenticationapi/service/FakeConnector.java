@@ -8,8 +8,8 @@ public class FakeConnector implements OAuthConnector {
     private final OAuthProvider provider = new FakeProvider();
 
     @Override
-    public String generateOAuthUrl(final String redirectUrl) {
-        return provider.generateOAuthUrl(redirectUrl);
+    public String generateOAuthUrl(final String redirectUrl, final String referrer) {
+        return provider.generateOAuthUrl(redirectUrl, referrer);
     }
 
     @Override

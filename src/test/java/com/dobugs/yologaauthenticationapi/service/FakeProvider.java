@@ -22,8 +22,9 @@ public class FakeProvider implements OAuthProvider {
     }
 
     @Override
-    public String generateOAuthUrl(final String redirectUrl) {
+    public String generateOAuthUrl(final String redirectUrl, final String referrer) {
         params.put("redirect_uri", redirectUrl);
+        params.put("referrer", referrer);
         return AUTH_URL + "?" + concatParams();
     }
 

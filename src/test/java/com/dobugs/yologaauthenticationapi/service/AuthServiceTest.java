@@ -19,6 +19,7 @@ import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 class AuthServiceTest {
 
     private static final String YOLOGA_URL = "http://yologa.dobugs.co.kr";
+    private static final String REFERRER_URL = "http://yologa.dobugs.co.kr";
 
     private AuthService authService;
 
@@ -36,7 +37,7 @@ class AuthServiceTest {
         @Test
         void generateGoogleOAuthUrl() {
             final String provider = "google";
-            final OAuthRequest request = new OAuthRequest(provider, YOLOGA_URL);
+            final OAuthRequest request = new OAuthRequest(provider, YOLOGA_URL, REFERRER_URL);
 
             final OAuthLinkResponse response = authService.generateOAuthUrl(request);
 
@@ -47,7 +48,7 @@ class AuthServiceTest {
         @Test
         void generateKakaoOAuthUrl() {
             final String provider = "kakao";
-            final OAuthRequest request = new OAuthRequest(provider, YOLOGA_URL);
+            final OAuthRequest request = new OAuthRequest(provider, YOLOGA_URL, REFERRER_URL);
 
             final OAuthLinkResponse response = authService.generateOAuthUrl(request);
 
@@ -58,7 +59,7 @@ class AuthServiceTest {
         @Test
         void notExistProvider() {
             final String provider = "notExistProvider";
-            final OAuthRequest request = new OAuthRequest(provider, YOLOGA_URL);
+            final OAuthRequest request = new OAuthRequest(provider, YOLOGA_URL, REFERRER_URL);
 
             assertThatThrownBy(() -> authService.generateOAuthUrl(request))
                 .isInstanceOf(IllegalArgumentException.class)

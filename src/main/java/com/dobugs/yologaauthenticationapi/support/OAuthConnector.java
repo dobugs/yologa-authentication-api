@@ -10,7 +10,7 @@ public interface OAuthConnector {
 
     RestTemplate REST_TEMPLATE = new RestTemplate();
 
-    String generateOAuthUrl(String redirectUrl);
+    String generateOAuthUrl(String redirectUrl, String referrer);
 
     String requestAccessToken(String authorizationCode, String redirectUrl);
 
