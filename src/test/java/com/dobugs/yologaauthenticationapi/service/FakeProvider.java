@@ -2,7 +2,6 @@ package com.dobugs.yologaauthenticationapi.service;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.util.MultiValueMap;
@@ -38,12 +37,5 @@ public class FakeProvider implements OAuthProvider {
     @Override
     public HttpEntity<MultiValueMap<String, String>> createEntity() {
         return null;
-    }
-
-    public String concatParams(final Map<String, String> params) {
-        return params.entrySet()
-            .stream()
-            .map(entry -> entry.getKey() + "=" + entry.getValue())
-            .collect(Collectors.joining("&"));
     }
 }
