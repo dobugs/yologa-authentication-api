@@ -1,4 +1,4 @@
-name: YOLOGA CI/CD
+name: YOLOGA CI
 
 on:
   push:
@@ -27,17 +27,3 @@ jobs:
         uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
         with:
           arguments: build
-
-      - name: Execute deploy.sh
-        uses: appleboy/ssh-action@master
-        with:
-          username: ${{ secrets.GCP_ACCOUNT_GMAIL_ID }}
-          host: ${{ secrets.GCP_HOST }}
-          port: ${{ secrets.GCP_SSH_PORT }}
-          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GCP_SSH_PRIVATE_KEY_PASSPHRASE }}
-          script: |
-            rm -rf yologa-authentication-api
-            git clone -b develop https://github.com/dobugs/yologa-api.git
-            mv ./yologa-authentication-api/scripts/deploy.sh ./deploy.sh
-            sh deploy.sh
