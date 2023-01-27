@@ -8,8 +8,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.dobugs.yologaauthenticationapi.repository.OAuthRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
@@ -23,15 +25,18 @@ class AuthServiceTest {
 
     private AuthService authService;
 
+    @Mock
+    private OAuthRepository oAuthRepository;
+
     @BeforeEach
     void setUp() {
         final OAuthConnector connector = new FakeConnector();
-        authService = new AuthService(connector, connector);
+        authService = new AuthService(connector, connector, oAuthRepository);
     }
 
     @DisplayName("OAuth URL 생성 테스트")
     @Nested
-    public class generateOAuthUrl {
+    public class generateOAuthTokenUrl {
 
         @DisplayName("구글 OAuth URL 을 생성한다")
         @Test
