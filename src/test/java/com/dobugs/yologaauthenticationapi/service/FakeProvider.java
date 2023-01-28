@@ -14,6 +14,7 @@ public class FakeProvider implements OAuthProvider {
     private static final String SCOPE = "scope";
     private static final String AUTH_URL = "authUrl";
     private static final String TOKEN_URL = "tokenUrl";
+    private static final String USER_INFO_URL = "userInfoUrl";
 
     @Override
     public String generateOAuthUrl(final String redirectUrl, final String referrer) {
@@ -35,7 +36,17 @@ public class FakeProvider implements OAuthProvider {
     }
 
     @Override
-    public HttpEntity<MultiValueMap<String, String>> createEntity() {
+    public String generateUserInfoUrl() {
+        return USER_INFO_URL;
+    }
+
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createTokenEntity() {
+        return null;
+    }
+
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createUserEntity(final String tokenType, final String accessToken) {
         return null;
     }
 }

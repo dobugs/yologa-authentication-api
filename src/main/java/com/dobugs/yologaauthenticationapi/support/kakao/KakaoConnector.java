@@ -10,6 +10,7 @@ import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
 import com.dobugs.yologaauthenticationapi.support.dto.response.KakaoTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.UserResponse;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -29,13 +30,18 @@ public class KakaoConnector implements OAuthConnector {
     @Override
     public TokenResponse requestToken(final String authorizationCode, final String redirectUrl) {
         final KakaoTokenResponse response = connect(authorizationCode, redirectUrl);
-        return new TokenResponse(response.access_token(), response.refresh_token());
+        return new TokenResponse(response.access_token(), response.refresh_token(), response.token_type());
+    }
+
+    @Override
+    public UserResponse requestUserInfo(final String tokenType, final String accessToken) {
+        return null;
     }
 
     private KakaoTokenResponse connect(final String authorizationCode, final String redirectUrl) {
         final ResponseEntity<KakaoTokenResponse> response = REST_TEMPLATE.postForEntity(
             kakaoProvider.generateTokenUrl(authorizationCode, redirectUrl),
-            kakaoProvider.createEntity(),
+            kakaoProvider.createTokenEntity(),
             KakaoTokenResponse.class
         );
         validateConnectionResponseIsSuccess(response);

@@ -56,10 +56,20 @@ public class KakaoProvider implements OAuthProvider {
     }
 
     @Override
-    public HttpEntity<MultiValueMap<String, String>> createEntity() {
+    public String generateUserInfoUrl() {
+        return null;
+    }
+
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createTokenEntity() {
         return new HttpEntity<>(
             createHeaders()
         );
+    }
+
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createUserEntity(final String tokenType, final String accessToken) {
+        return null;
     }
 
     private HttpHeaders createHeaders() {
