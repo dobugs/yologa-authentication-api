@@ -21,17 +21,20 @@ public class KakaoProvider implements OAuthProvider {
     private final String clientId;
     private final String authUrl;
     private final String accessTokenUrl;
+    private final String userInfoUrl;
     private final String grantType;
 
     public KakaoProvider(
         @Value("${oauth2.kakao.client.id}") final String clientId,
         @Value("${oauth2.kakao.url.auth}") final String authUrl,
         @Value("${oauth2.kakao.url.token}") final String accessTokenUrl,
+        @Value("${oauth2.kakao.url.userinfo}") final String userInfoUrl,
         @Value("${oauth2.kakao.grant-type}") final String grantType
     ) {
         this.clientId = clientId;
         this.authUrl = authUrl;
         this.accessTokenUrl = accessTokenUrl;
+        this.userInfoUrl = userInfoUrl;
         this.grantType = grantType;
     }
 
@@ -57,7 +60,7 @@ public class KakaoProvider implements OAuthProvider {
 
     @Override
     public String generateUserInfoUrl() {
-        return null;
+        return userInfoUrl;
     }
 
     @Override
@@ -69,12 +72,20 @@ public class KakaoProvider implements OAuthProvider {
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createUserEntity(final String tokenType, final String accessToken) {
-        return null;
+        return new HttpEntity<>(
+            createUserHeaders(tokenType, accessToken)
+        );
     }
 
     private HttpHeaders createHeaders() {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        return headers;
+    }
+
+    private HttpHeaders createUserHeaders(final String tokenType, final String accessToken) {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", String.join(" ", tokenType, accessToken));
         return headers;
     }
 }
