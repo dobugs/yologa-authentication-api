@@ -24,6 +24,7 @@ public class GoogleProvider implements OAuthProvider {
     private final String scope;
     private final String authUrl;
     private final String accessTokenUrl;
+    private final String userInfoUrl;
     private final String grantType;
 
     public GoogleProvider(
@@ -33,6 +34,7 @@ public class GoogleProvider implements OAuthProvider {
         @Value("${oauth2.google.access-type}") final String accessType,
         @Value("${oauth2.google.url.auth}") final String authUrl,
         @Value("${oauth2.google.url.token}") final String accessTokenUrl,
+        @Value("${oauth2.google.url.userinfo}") final String userInfoUrl,
         @Value("${oauth2.google.grant-type}") final String grantType
     ) {
         this.clientId = clientId;
@@ -41,6 +43,7 @@ public class GoogleProvider implements OAuthProvider {
         this.scope = scope;
         this.authUrl = authUrl;
         this.accessTokenUrl = accessTokenUrl;
+        this.userInfoUrl = userInfoUrl;
         this.grantType = grantType;
     }
 
@@ -68,15 +71,33 @@ public class GoogleProvider implements OAuthProvider {
     }
 
     @Override
-    public HttpEntity<MultiValueMap<String, String>> createEntity() {
+    public String generateUserInfoUrl() {
+        return userInfoUrl;
+    }
+
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createTokenEntity() {
         return new HttpEntity<>(
-            createHeaders()
+            createTokenHeaders()
         );
     }
 
-    private HttpHeaders createHeaders() {
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createUserEntity(final String tokenType, final String accessToken) {
+        return new HttpEntity<>(
+            createUserHeaders(tokenType, accessToken)
+        );
+    }
+
+    private HttpHeaders createTokenHeaders() {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        return headers;
+    }
+
+    private HttpHeaders createUserHeaders(final String tokenType, final String accessToken) {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", String.join(" ", tokenType, accessToken));
         return headers;
     }
 }
