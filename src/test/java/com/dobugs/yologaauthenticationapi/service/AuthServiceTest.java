@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.repository.OAuthRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
@@ -28,10 +29,13 @@ class AuthServiceTest {
     @Mock
     private OAuthRepository oAuthRepository;
 
+    @Mock
+    private MemberRepository memberRepository;
+
     @BeforeEach
     void setUp() {
         final OAuthConnector connector = new FakeConnector();
-        authService = new AuthService(connector, connector, oAuthRepository);
+        authService = new AuthService(connector, connector, oAuthRepository, memberRepository);
     }
 
     @DisplayName("OAuth URL 생성 테스트")

@@ -6,8 +6,10 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dobugs.yologaauthenticationapi.domain.Member;
 import com.dobugs.yologaauthenticationapi.domain.OAuthToken;
 import com.dobugs.yologaauthenticationapi.domain.Provider;
+import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.repository.OAuthRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
@@ -27,6 +29,7 @@ public class AuthService {
     private final OAuthConnector googleConnector;
     private final OAuthConnector kakaoConnector;
     private final OAuthRepository oAuthRepository;
+    private final MemberRepository memberRepository;
 
     public OAuthLinkResponse generateOAuthUrl(final OAuthRequest request) {
         final OAuthConnector oAuthConnector = selectConnector(request.provider());
@@ -48,9 +51,16 @@ public class AuthService {
         final TokenResponse tokenResponse = oAuthConnector.requestToken(authorizationCode, redirectUrl);
         final UserResponse userResponse = oAuthConnector.requestUserInfo(tokenResponse.tokenType(), tokenResponse.accessToken());
 
-        final OAuthToken oAuthToken = OAuthToken.login(1L, Provider.findOf(provider), tokenResponse.refreshToken());
-        oAuthRepository.save(oAuthToken);
+        saveMember(provider, tokenResponse, userResponse);
         return new OAuthTokenResponse(tokenResponse.accessToken(), tokenResponse.refreshToken());
+    }
+
+    private void saveMember(final String provider, final TokenResponse tokenResponse, final UserResponse userResponse) {
+        final Member savedMember = memberRepository.findByOauthId(userResponse.oAuthId())
+            .orElseGet(() -> memberRepository.save(new Member(userResponse.oAuthId())));
+
+        final OAuthToken oAuthToken = OAuthToken.login(savedMember.getId(), Provider.findOf(provider), tokenResponse.refreshToken());
+        oAuthRepository.save(oAuthToken);
     }
 
     private OAuthConnector selectConnector(final String provider) {
