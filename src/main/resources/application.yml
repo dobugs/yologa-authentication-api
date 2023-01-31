@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: local
+    active: dev
   config:
     import:
       - yologa-security/application-oauth2.yml
