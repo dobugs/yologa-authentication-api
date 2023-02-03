@@ -10,7 +10,7 @@ import com.dobugs.yologaauthenticationapi.domain.Member;
 import com.dobugs.yologaauthenticationapi.domain.OAuthToken;
 import com.dobugs.yologaauthenticationapi.domain.Provider;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
-import com.dobugs.yologaauthenticationapi.repository.OAuthRepository;
+import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
@@ -28,8 +28,8 @@ public class AuthService {
 
     private final OAuthConnector googleConnector;
     private final OAuthConnector kakaoConnector;
-    private final OAuthRepository oAuthRepository;
     private final MemberRepository memberRepository;
+    private final TokenRepository tokenRepository;
 
     public OAuthLinkResponse generateOAuthUrl(final OAuthRequest request) {
         final OAuthConnector oAuthConnector = selectConnector(request.provider());
@@ -60,7 +60,7 @@ public class AuthService {
             .orElseGet(() -> memberRepository.save(new Member(userResponse.oAuthId())));
 
         final OAuthToken oAuthToken = OAuthToken.login(savedMember.getId(), Provider.findOf(provider), tokenResponse.refreshToken());
-        oAuthRepository.save(oAuthToken);
+        tokenRepository.save(oAuthToken);
     }
 
     private OAuthConnector selectConnector(final String provider) {

@@ -12,7 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
-import com.dobugs.yologaauthenticationapi.repository.OAuthRepository;
+import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
@@ -27,15 +27,15 @@ class AuthServiceTest {
     private AuthService authService;
 
     @Mock
-    private OAuthRepository oAuthRepository;
+    private MemberRepository memberRepository;
 
     @Mock
-    private MemberRepository memberRepository;
+    private TokenRepository tokenRepository;
 
     @BeforeEach
     void setUp() {
         final OAuthConnector connector = new FakeConnector();
-        authService = new AuthService(connector, connector, oAuthRepository, memberRepository);
+        authService = new AuthService(connector, connector, memberRepository, tokenRepository);
     }
 
     @DisplayName("OAuth URL 생성 테스트")
