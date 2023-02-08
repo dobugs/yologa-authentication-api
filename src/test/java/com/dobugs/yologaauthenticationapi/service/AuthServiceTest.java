@@ -2,6 +2,7 @@ package com.dobugs.yologaauthenticationapi.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
+import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthProviderRequest;
+import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRefreshTokenRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
@@ -73,6 +76,45 @@ class AuthServiceTest {
             assertThatThrownBy(() -> authService.generateOAuthUrl(request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("잘못된 provider 입니다.");
+        }
+    }
+
+    @DisplayName("Access Token 재발급 시 Refresh Token 검증 테스트")
+    @Nested
+    public class validateTheExistenceOfRefreshToken {
+
+        @DisplayName("memberId 가 존재하지 않을 경우 예외가 발생한다")
+        @Test
+        void notExistMemberId() {
+            final long notExistMemberId = 0L;
+            final String existRefreshToken = "refreshToken";
+
+            final OAuthProviderRequest request = new OAuthProviderRequest("google");
+            final OAuthRefreshTokenRequest tokenRequest = new OAuthRefreshTokenRequest(notExistMemberId, existRefreshToken);
+
+            given(tokenRepository.existRefreshToken(notExistMemberId, existRefreshToken))
+                .willReturn(false);
+
+            assertThatThrownBy(() -> authService.reissue(request, tokenRequest))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("잘못된 refresh token 입니다.");
+        }
+
+        @DisplayName("refresh token 이 일치하지 않을 경우 예외가 발생한다")
+        @Test
+        void notEqualsRefreshToken() {
+            final long existMemberId = 0L;
+            final String notExistRefreshToken = "refreshToken";
+
+            final OAuthProviderRequest request = new OAuthProviderRequest("google");
+            final OAuthRefreshTokenRequest tokenRequest = new OAuthRefreshTokenRequest(existMemberId, notExistRefreshToken);
+
+            given(tokenRepository.existRefreshToken(existMemberId, notExistRefreshToken))
+                .willReturn(false);
+
+            assertThatThrownBy(() -> authService.reissue(request, tokenRequest))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("잘못된 refresh token 입니다.");
         }
     }
 }
