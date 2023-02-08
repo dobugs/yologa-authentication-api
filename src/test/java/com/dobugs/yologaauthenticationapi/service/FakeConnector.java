@@ -2,7 +2,6 @@ package com.dobugs.yologaauthenticationapi.service;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
-import com.dobugs.yologaauthenticationapi.support.dto.response.AccessTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserResponse;
 
@@ -26,7 +25,7 @@ public class FakeConnector implements OAuthConnector {
     }
 
     @Override
-    public AccessTokenResponse requestAccessToken(final String refreshToken) {
+    public TokenResponse requestAccessToken(final String refreshToken) {
         return null;
     }
 }

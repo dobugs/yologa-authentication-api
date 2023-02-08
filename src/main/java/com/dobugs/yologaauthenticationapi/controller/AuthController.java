@@ -13,7 +13,6 @@ import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthProviderRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRefreshTokenRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
-import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthAccessTokenResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
 
@@ -42,11 +41,11 @@ public class AuthController {
     }
 
     @PostMapping("/oauth2/reissue")
-    public ResponseEntity<OAuthAccessTokenResponse> reissue(
+    public ResponseEntity<OAuthTokenResponse> reissue(
         @ModelAttribute final OAuthProviderRequest request,
         @RequestBody final OAuthRefreshTokenRequest tokenRequest
     ) {
-        final OAuthAccessTokenResponse response = authService.reissue(request, tokenRequest);
+        final OAuthTokenResponse response = authService.reissue(request, tokenRequest);
         return ResponseEntity.ok(response);
     }
 }

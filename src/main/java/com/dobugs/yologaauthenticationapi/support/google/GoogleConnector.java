@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
-import com.dobugs.yologaauthenticationapi.support.dto.response.AccessTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleAccessTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleUserResponse;
@@ -44,9 +43,9 @@ public class GoogleConnector implements OAuthConnector {
     }
 
     @Override
-    public AccessTokenResponse requestAccessToken(final String refreshToken) {
+    public TokenResponse requestAccessToken(final String refreshToken) {
         final GoogleAccessTokenResponse response = connectForAccessToken(refreshToken);
-        return new AccessTokenResponse(response.access_token(), response.token_type());
+        return new TokenResponse(response.access_token(), refreshToken, response.token_type());
     }
 
     private GoogleTokenResponse connectForToken(final String authorizationCode, final String redirectUrl) {
