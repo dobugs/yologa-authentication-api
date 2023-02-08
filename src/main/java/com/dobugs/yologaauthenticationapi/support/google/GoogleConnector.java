@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
-import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleAccessTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleUserResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
@@ -44,7 +43,7 @@ public class GoogleConnector implements OAuthConnector {
 
     @Override
     public TokenResponse requestAccessToken(final String refreshToken) {
-        final GoogleAccessTokenResponse response = connectForAccessToken(refreshToken);
+        final GoogleTokenResponse response = connectForAccessToken(refreshToken);
         return new TokenResponse(response.access_token(), refreshToken, response.token_type());
     }
 
@@ -71,11 +70,11 @@ public class GoogleConnector implements OAuthConnector {
             .orElseThrow(() -> new IllegalArgumentException("Google 의 사용자 정보를 가져오는 과정에서 연결에 실패하였습니다."));
     }
 
-    private GoogleAccessTokenResponse connectForAccessToken(final String refreshToken) {
-        final ResponseEntity<GoogleAccessTokenResponse> response = REST_TEMPLATE.postForEntity(
+    private GoogleTokenResponse connectForAccessToken(final String refreshToken) {
+        final ResponseEntity<GoogleTokenResponse> response = REST_TEMPLATE.postForEntity(
             googleProvider.generateAccessTokenUrl(refreshToken),
             googleProvider.createAccessTokenEntity(),
-            GoogleAccessTokenResponse.class
+            GoogleTokenResponse.class
         );
         validateConnectionResponseIsSuccess(response);
         return Optional.ofNullable(response.getBody())
