@@ -15,6 +15,7 @@ import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthProviderRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRefreshTokenRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
+import com.dobugs.yologaauthenticationapi.support.dto.response.AccessTokenResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthAccessTokenResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
@@ -63,7 +64,8 @@ public class AuthService {
         final String refreshToken = decode(tokenRequest.refreshToken());
 
         validateTheExistenceOfRefreshToken(tokenRequest.memberId(), refreshToken);
-        return null;
+        final AccessTokenResponse response = oAuthConnector.requestAccessToken(refreshToken);
+        return new OAuthAccessTokenResponse(response.accessToken());
     }
 
     private void saveMember(final String provider, final TokenResponse tokenResponse, final UserResponse userResponse) {

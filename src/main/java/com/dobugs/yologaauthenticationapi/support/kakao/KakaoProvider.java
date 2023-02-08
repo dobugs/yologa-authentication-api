@@ -64,20 +64,26 @@ public class KakaoProvider implements OAuthProvider {
     }
 
     @Override
+    public String generateAccessTokenUrl(final String refreshToken) {
+        return null;
+    }
+
+    @Override
     public HttpEntity<MultiValueMap<String, String>> createTokenEntity() {
-        return new HttpEntity<>(
-            createHeaders()
-        );
+        return new HttpEntity<>(createTokenHeaders());
     }
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createUserEntity(final String tokenType, final String accessToken) {
-        return new HttpEntity<>(
-            createUserHeaders(tokenType, accessToken)
-        );
+        return new HttpEntity<>(createUserHeaders(tokenType, accessToken));
     }
 
-    private HttpHeaders createHeaders() {
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createAccessTokenEntity() {
+        return null;
+    }
+
+    private HttpHeaders createTokenHeaders() {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return headers;

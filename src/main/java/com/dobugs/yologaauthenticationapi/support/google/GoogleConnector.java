@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
+import com.dobugs.yologaauthenticationapi.support.dto.response.AccessTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleAccessTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleUserResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
@@ -41,6 +43,12 @@ public class GoogleConnector implements OAuthConnector {
         return new UserResponse(response.id());
     }
 
+    @Override
+    public AccessTokenResponse requestAccessToken(final String refreshToken) {
+        final GoogleAccessTokenResponse response = connectForAccessToken(refreshToken);
+        return new AccessTokenResponse(response.access_token(), response.token_type());
+    }
+
     private GoogleTokenResponse connectForToken(final String authorizationCode, final String redirectUrl) {
         final ResponseEntity<GoogleTokenResponse> response = REST_TEMPLATE.postForEntity(
             googleProvider.generateTokenUrl(authorizationCode, redirectUrl),
@@ -62,6 +70,17 @@ public class GoogleConnector implements OAuthConnector {
         validateConnectionResponseIsSuccess(response);
         return Optional.ofNullable(response.getBody())
             .orElseThrow(() -> new IllegalArgumentException("Google 의 사용자 정보를 가져오는 과정에서 연결에 실패하였습니다."));
+    }
+
+    private GoogleAccessTokenResponse connectForAccessToken(final String refreshToken) {
+        final ResponseEntity<GoogleAccessTokenResponse> response = REST_TEMPLATE.postForEntity(
+            googleProvider.generateAccessTokenUrl(refreshToken),
+            googleProvider.createAccessTokenEntity(),
+            GoogleAccessTokenResponse.class
+        );
+        validateConnectionResponseIsSuccess(response);
+        return Optional.ofNullable(response.getBody())
+            .orElseThrow(() -> new IllegalArgumentException("Google 에서 Access Token 을 재발급 받는 과정에서 연결에 실패하였습니다."));
     }
 
     private void validateConnectionResponseIsSuccess(final ResponseEntity<?> response) {

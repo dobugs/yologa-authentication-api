@@ -11,6 +11,7 @@ import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
 public class FakeProvider implements OAuthProvider {
 
     private static final String CLIENT_ID = "clientId";
+    private static final String CLIENT_SECRET = "clientSecret";
     private static final String SCOPE = "scope";
     private static final String AUTH_URL = "authUrl";
     private static final String TOKEN_URL = "tokenUrl";
@@ -41,12 +42,27 @@ public class FakeProvider implements OAuthProvider {
     }
 
     @Override
+    public String generateAccessTokenUrl(final String refreshToken) {
+        final Map<String, String> params = new HashMap<>();
+        params.put("client_id", CLIENT_ID);
+        params.put("client_secret", CLIENT_SECRET);
+        params.put("refresh_token", refreshToken);
+        params.put("grant_type", "refresh_token");
+        return TOKEN_URL + "?" + concatParams(params);
+    }
+
+    @Override
     public HttpEntity<MultiValueMap<String, String>> createTokenEntity() {
         return null;
     }
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createUserEntity(final String tokenType, final String accessToken) {
+        return null;
+    }
+
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createAccessTokenEntity() {
         return null;
     }
 }

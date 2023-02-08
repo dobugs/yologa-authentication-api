@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
+import com.dobugs.yologaauthenticationapi.support.dto.response.AccessTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.KakaoTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.KakaoUserResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
@@ -39,6 +40,11 @@ public class KakaoConnector implements OAuthConnector {
     public UserResponse requestUserInfo(final String tokenType, final String accessToken) {
         final KakaoUserResponse response = connectForUserInfo(tokenType, accessToken);
         return new UserResponse(response.id());
+    }
+
+    @Override
+    public AccessTokenResponse requestAccessToken(final String refreshToken) {
+        return null;
     }
 
     private KakaoTokenResponse connectForToken(final String authorizationCode, final String redirectUrl) {

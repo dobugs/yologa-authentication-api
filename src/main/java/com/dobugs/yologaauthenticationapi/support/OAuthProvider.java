@@ -14,9 +14,13 @@ public interface OAuthProvider {
 
     String generateUserInfoUrl();
 
+    String generateAccessTokenUrl(String refreshToken);
+
     HttpEntity<MultiValueMap<String, String>> createTokenEntity();
 
     HttpEntity<MultiValueMap<String, String>> createUserEntity(String tokenType, String accessToken);
+
+    HttpEntity<MultiValueMap<String, String>> createAccessTokenEntity();
 
     default String concatParams(final Map<String, String> params) {
         return params.entrySet()
