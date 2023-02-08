@@ -65,7 +65,11 @@ public class KakaoProvider implements OAuthProvider {
 
     @Override
     public String generateAccessTokenUrl(final String refreshToken) {
-        return null;
+        final Map<String, String> params = new HashMap<>();
+        params.put("grant_type", "refresh_token");
+        params.put("client_id", clientId);
+        params.put("refresh_token", refreshToken);
+        return accessTokenUrl + "?" + concatParams(params);
     }
 
     @Override
@@ -80,7 +84,7 @@ public class KakaoProvider implements OAuthProvider {
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createAccessTokenEntity() {
-        return null;
+        return new HttpEntity<>(createTokenHeaders());
     }
 
     private HttpHeaders createTokenHeaders() {

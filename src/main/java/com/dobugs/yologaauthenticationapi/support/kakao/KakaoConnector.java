@@ -43,7 +43,11 @@ public class KakaoConnector implements OAuthConnector {
 
     @Override
     public TokenResponse requestAccessToken(final String refreshToken) {
-        return null;
+        final KakaoTokenResponse response = connectForAccessToken(refreshToken);
+        if (response.refresh_token() != null) {
+            return new TokenResponse(response.access_token(), response.refresh_token(), response.token_type());
+        }
+        return new TokenResponse(response.access_token(), refreshToken, response.token_type());
     }
 
     private KakaoTokenResponse connectForToken(final String authorizationCode, final String redirectUrl) {
@@ -66,7 +70,18 @@ public class KakaoConnector implements OAuthConnector {
         );
         validateConnectionResponseIsSuccess(response);
         return Optional.ofNullable(response.getBody())
-            .orElseThrow(() -> new IllegalArgumentException("Google 의 사용자 정보를 가져오는 과정에서 연결에 실패하였습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("kakao 의 사용자 정보를 가져오는 과정에서 연결에 실패하였습니다."));
+    }
+
+    private KakaoTokenResponse connectForAccessToken(final String refreshToken) {
+        final ResponseEntity<KakaoTokenResponse> response = REST_TEMPLATE.postForEntity(
+            kakaoProvider.generateAccessTokenUrl(refreshToken),
+            kakaoProvider.createAccessTokenEntity(),
+            KakaoTokenResponse.class
+        );
+        validateConnectionResponseIsSuccess(response);
+        return Optional.ofNullable(response.getBody())
+            .orElseThrow(() -> new IllegalArgumentException("kakao 에서 Access Token 을 재발급 받는 과정에서 연결에 실패하였습니다."));
     }
 
     private void validateConnectionResponseIsSuccess(final ResponseEntity<?> response) {
