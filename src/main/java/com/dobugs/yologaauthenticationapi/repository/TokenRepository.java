@@ -27,6 +27,11 @@ public class TokenRepository {
         operations.putAll(key, value);
     }
 
+    public void saveRefreshToken(final Long memberId, final String refreshToken) {
+        final String key = String.valueOf(memberId);
+        operations.put(key, OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, refreshToken);
+    }
+
     public boolean existRefreshToken(final Long memberId, final String refreshToken) {
         final String key = String.valueOf(memberId);
         final String savedRefreshToken = (String) operations.get(key, OAuthToken.KEY_NAME_OF_REFRESH_TOKEN);

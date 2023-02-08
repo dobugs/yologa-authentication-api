@@ -55,6 +55,52 @@ class TokenRepositoryTest {
         }
     }
 
+    @DisplayName("refresh token 재저장 테스트")
+    @Nested
+    public class saveRefreshToken {
+
+        private static final long MEMBER_ID = 0L;
+        private static final String REFRESH_TOKEN = "refresh token";
+
+        private HashOperations<String, Object, Object> operations;
+
+        @BeforeEach
+        void setUp() {
+            operations = redisTemplate.opsForHash();
+        }
+
+        @AfterEach
+        void tearDown() {
+            redisTemplate.delete(String.valueOf(MEMBER_ID));
+        }
+
+        @DisplayName("이전에 저장되어 있던 refresh token 을 덮어서 저장한다")
+        @Test
+        void restore() {
+            final HashMap<String, Object> value = new HashMap<>();
+            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, Provider.GOOGLE.getName());
+            value.put(OAuthToken.KEY_NAME_OF_ACCESS_TOKEN, null);
+            value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, "beforeRefreshToken");
+            operations.putAll(String.valueOf(MEMBER_ID), value);
+
+            tokenRepository.saveRefreshToken(MEMBER_ID, REFRESH_TOKEN);
+
+            final String savedRefreshToken = (String) operations.get(String.valueOf(MEMBER_ID), OAuthToken.KEY_NAME_OF_REFRESH_TOKEN);
+
+            assertThat(savedRefreshToken).isEqualTo(REFRESH_TOKEN);
+        }
+
+        @DisplayName("이전에 refresh token 이 없는 상태에서 저장한다")
+        @Test
+        void save() {
+            tokenRepository.saveRefreshToken(MEMBER_ID, REFRESH_TOKEN);
+
+            final String savedRefreshToken = (String) operations.get(String.valueOf(MEMBER_ID), OAuthToken.KEY_NAME_OF_REFRESH_TOKEN);
+
+            assertThat(savedRefreshToken).isEqualTo(REFRESH_TOKEN);
+        }
+    }
+
     @DisplayName("refresh token 존재 여부 테스트")
     @Nested
     public class existRefreshToken {

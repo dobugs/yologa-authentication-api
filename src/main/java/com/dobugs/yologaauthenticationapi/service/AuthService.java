@@ -57,12 +57,14 @@ public class AuthService {
         return new OAuthTokenResponse(tokenResponse.accessToken(), tokenResponse.refreshToken());
     }
 
+    @Transactional
     public OAuthTokenResponse reissue(final OAuthProviderRequest request, final OAuthRefreshTokenRequest tokenRequest) {
         final OAuthConnector oAuthConnector = selectConnector(request.provider());
         final String refreshToken = decode(tokenRequest.refreshToken());
 
         validateTheExistenceOfRefreshToken(tokenRequest.memberId(), refreshToken);
         final TokenResponse response = oAuthConnector.requestAccessToken(refreshToken);
+        restoreRefreshToken(tokenRequest.memberId(), response.refreshToken());
         return new OAuthTokenResponse(response.accessToken(), response.refreshToken());
     }
 
@@ -78,6 +80,10 @@ public class AuthService {
         if (!tokenRepository.existRefreshToken(memberId, refreshToken)) {
             throw new IllegalArgumentException("잘못된 refresh token 입니다.");
         }
+    }
+
+    private void restoreRefreshToken(final Long memberId, final String refreshToken) {
+        tokenRepository.saveRefreshToken(memberId, refreshToken);
     }
 
     private OAuthConnector selectConnector(final String provider) {
