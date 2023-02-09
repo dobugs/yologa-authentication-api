@@ -22,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 @Component
 public class GoogleConnector implements OAuthConnector {
 
+    private static final int REFRESH_TOKEN_EXPIRES_IN = -1;
+
     private final OAuthProvider googleProvider;
 
     @Override
@@ -32,7 +34,8 @@ public class GoogleConnector implements OAuthConnector {
     @Override
     public TokenResponse requestToken(final String authorizationCode, final String redirectUrl) {
         final GoogleTokenResponse response = connectForToken(authorizationCode, redirectUrl);
-        return new TokenResponse(response.access_token(), response.refresh_token(), response.token_type());
+        return new TokenResponse(response.access_token(), response.expires_in(), response.refresh_token(),
+            REFRESH_TOKEN_EXPIRES_IN, response.token_type());
     }
 
     @Override
@@ -44,7 +47,8 @@ public class GoogleConnector implements OAuthConnector {
     @Override
     public TokenResponse requestAccessToken(final String refreshToken) {
         final GoogleTokenResponse response = connectForAccessToken(refreshToken);
-        return new TokenResponse(response.access_token(), refreshToken, response.token_type());
+        return new TokenResponse(response.access_token(), response.expires_in(), refreshToken,
+            REFRESH_TOKEN_EXPIRES_IN, response.token_type());
     }
 
     private GoogleTokenResponse connectForToken(final String authorizationCode, final String redirectUrl) {

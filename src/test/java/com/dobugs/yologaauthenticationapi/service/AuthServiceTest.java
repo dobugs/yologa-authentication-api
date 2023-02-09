@@ -19,6 +19,7 @@ import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRefreshTokenR
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
+import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Auth 서비스 테스트")
@@ -35,10 +36,13 @@ class AuthServiceTest {
     @Mock
     private TokenRepository tokenRepository;
 
+    @Mock
+    private TokenGenerator tokenGenerator;
+
     @BeforeEach
     void setUp() {
         final OAuthConnector connector = new FakeConnector();
-        authService = new AuthService(connector, connector, memberRepository, tokenRepository);
+        authService = new AuthService(connector, connector, memberRepository, tokenRepository, tokenGenerator);
     }
 
     @DisplayName("OAuth URL 생성 테스트")

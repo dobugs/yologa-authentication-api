@@ -18,6 +18,8 @@ import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
+import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
+import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserResponse;
 
@@ -32,6 +34,7 @@ public class AuthService {
     private final OAuthConnector kakaoConnector;
     private final MemberRepository memberRepository;
     private final TokenRepository tokenRepository;
+    private final TokenGenerator tokenGenerator;
 
     public OAuthLinkResponse generateOAuthUrl(final OAuthRequest request) {
         final OAuthConnector oAuthConnector = selectConnector(request.provider());
@@ -39,7 +42,6 @@ public class AuthService {
         final String referrer = decode(request.referrer());
 
         final String oAuthUrl = oAuthConnector.generateOAuthUrl(redirectUrl, referrer);
-
         return new OAuthLinkResponse(oAuthUrl);
     }
 
@@ -53,8 +55,10 @@ public class AuthService {
         final TokenResponse tokenResponse = oAuthConnector.requestToken(authorizationCode, redirectUrl);
         final UserResponse userResponse = oAuthConnector.requestUserInfo(tokenResponse.tokenType(), tokenResponse.accessToken());
 
-        saveMember(provider, tokenResponse, userResponse);
-        return new OAuthTokenResponse(tokenResponse.accessToken(), tokenResponse.refreshToken());
+        final Long memberId = saveMember(provider, tokenResponse, userResponse);
+        final ServiceTokenResponse serviceTokenResponse = tokenGenerator.create(memberId, tokenResponse);
+
+        return new OAuthTokenResponse(serviceTokenResponse.accessToken(), serviceTokenResponse.refreshToken());
     }
 
     @Transactional
@@ -68,12 +72,14 @@ public class AuthService {
         return new OAuthTokenResponse(response.accessToken(), response.refreshToken());
     }
 
-    private void saveMember(final String provider, final TokenResponse tokenResponse, final UserResponse userResponse) {
+    private Long saveMember(final String provider, final TokenResponse tokenResponse, final UserResponse userResponse) {
         final Member savedMember = memberRepository.findByOauthId(userResponse.oAuthId())
             .orElseGet(() -> memberRepository.save(new Member(userResponse.oAuthId())));
 
         final OAuthToken oAuthToken = OAuthToken.login(savedMember.getId(), Provider.findOf(provider), tokenResponse.refreshToken());
         tokenRepository.save(oAuthToken);
+
+        return savedMember.getId();
     }
 
     private void validateTheExistenceOfRefreshToken(final Long memberId, final String refreshToken) {
