@@ -4,3 +4,4 @@ spring:
   config:
     import:
       - yologa-security/application-oauth2.yml
+      - yologa-security/application-jwt.yml
