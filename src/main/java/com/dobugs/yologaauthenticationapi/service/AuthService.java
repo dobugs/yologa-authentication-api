@@ -13,7 +13,6 @@ import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthProviderRequest;
-import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRefreshTokenRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
@@ -22,6 +21,7 @@ import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -62,13 +62,14 @@ public class AuthService {
     }
 
     @Transactional
-    public OAuthTokenResponse reissue(final OAuthProviderRequest request, final OAuthRefreshTokenRequest tokenRequest) {
+    public OAuthTokenResponse reissue(final OAuthProviderRequest request, final String serviceToken) {
         final OAuthConnector oAuthConnector = selectConnector(request.provider());
-        final String refreshToken = decode(tokenRequest.refreshToken());
+        final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
+        final String refreshToken = decode(userTokenResponse.token());
 
-        validateTheExistenceOfRefreshToken(tokenRequest.memberId(), refreshToken);
+        validateTheExistenceOfRefreshToken(userTokenResponse.memberId(), refreshToken);
         final TokenResponse response = oAuthConnector.requestAccessToken(refreshToken);
-        restoreRefreshToken(tokenRequest.memberId(), response.refreshToken());
+        restoreRefreshToken(userTokenResponse.memberId(), response.refreshToken());
         return new OAuthTokenResponse(response.accessToken(), response.refreshToken());
     }
 

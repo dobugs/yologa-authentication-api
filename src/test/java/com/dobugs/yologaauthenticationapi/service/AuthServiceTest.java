@@ -15,11 +15,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthProviderRequest;
-import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRefreshTokenRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
+import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
+
+import io.jsonwebtoken.Jwts;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Auth 서비스 테스트")
@@ -92,14 +94,16 @@ class AuthServiceTest {
         void notExistMemberId() {
             final long notExistMemberId = 0L;
             final String existRefreshToken = "refreshToken";
+            final String serviceToken = createToken(notExistMemberId, existRefreshToken);
 
             final OAuthProviderRequest request = new OAuthProviderRequest("google");
-            final OAuthRefreshTokenRequest tokenRequest = new OAuthRefreshTokenRequest(notExistMemberId, existRefreshToken);
 
+            given(tokenGenerator.extract(serviceToken))
+                .willReturn(new UserTokenResponse(notExistMemberId, existRefreshToken));
             given(tokenRepository.existRefreshToken(notExistMemberId, existRefreshToken))
                 .willReturn(false);
 
-            assertThatThrownBy(() -> authService.reissue(request, tokenRequest))
+            assertThatThrownBy(() -> authService.reissue(request, serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("잘못된 refresh token 입니다.");
         }
@@ -109,16 +113,25 @@ class AuthServiceTest {
         void notEqualsRefreshToken() {
             final long existMemberId = 0L;
             final String notExistRefreshToken = "refreshToken";
+            final String serviceToken = createToken(existMemberId, notExistRefreshToken);
 
             final OAuthProviderRequest request = new OAuthProviderRequest("google");
-            final OAuthRefreshTokenRequest tokenRequest = new OAuthRefreshTokenRequest(existMemberId, notExistRefreshToken);
 
+            given(tokenGenerator.extract(serviceToken))
+                .willReturn(new UserTokenResponse(existMemberId, notExistRefreshToken));
             given(tokenRepository.existRefreshToken(existMemberId, notExistRefreshToken))
                 .willReturn(false);
 
-            assertThatThrownBy(() -> authService.reissue(request, tokenRequest))
+            assertThatThrownBy(() -> authService.reissue(request, serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("잘못된 refresh token 입니다.");
+        }
+
+        private String createToken(final Long memberId, final String token) {
+            return Jwts.builder()
+                .claim("memberId", memberId)
+                .claim("token", token)
+                .compact();
         }
     }
 }
