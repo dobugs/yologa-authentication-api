@@ -14,4 +14,6 @@ public interface OAuthConnector {
     TokenResponse requestToken(String authorizationCode, String redirectUrl);
 
     UserResponse requestUserInfo(String tokenType, String accessToken);
+
+    TokenResponse requestAccessToken(String refreshToken);
 }

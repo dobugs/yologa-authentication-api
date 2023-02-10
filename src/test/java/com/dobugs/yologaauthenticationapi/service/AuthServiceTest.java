@@ -2,6 +2,7 @@ package com.dobugs.yologaauthenticationapi.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -12,10 +13,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
-import com.dobugs.yologaauthenticationapi.repository.OAuthRepository;
+import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
+import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
+import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
+
+import io.jsonwebtoken.Jwts;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Auth 서비스 테스트")
@@ -27,15 +32,18 @@ class AuthServiceTest {
     private AuthService authService;
 
     @Mock
-    private OAuthRepository oAuthRepository;
+    private MemberRepository memberRepository;
 
     @Mock
-    private MemberRepository memberRepository;
+    private TokenRepository tokenRepository;
+
+    @Mock
+    private TokenGenerator tokenGenerator;
 
     @BeforeEach
     void setUp() {
         final OAuthConnector connector = new FakeConnector();
-        authService = new AuthService(connector, connector, oAuthRepository, memberRepository);
+        authService = new AuthService(connector, connector, memberRepository, tokenRepository, tokenGenerator);
     }
 
     @DisplayName("OAuth URL 생성 테스트")
@@ -73,6 +81,55 @@ class AuthServiceTest {
             assertThatThrownBy(() -> authService.generateOAuthUrl(request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("잘못된 provider 입니다.");
+        }
+    }
+
+    @DisplayName("Access Token 재발급 시 Refresh Token 검증 테스트")
+    @Nested
+    public class validateTheExistenceOfRefreshToken {
+
+        private static final String PROVIDER = "google";
+
+        @DisplayName("memberId 가 존재하지 않을 경우 예외가 발생한다")
+        @Test
+        void notExistMemberId() {
+            final long notExistMemberId = 0L;
+            final String existRefreshToken = "refreshToken";
+            final String serviceToken = createToken(notExistMemberId, PROVIDER, existRefreshToken);
+
+            given(tokenGenerator.extract(serviceToken))
+                .willReturn(new UserTokenResponse(notExistMemberId, PROVIDER, existRefreshToken));
+            given(tokenRepository.existRefreshToken(notExistMemberId, existRefreshToken))
+                .willReturn(false);
+
+            assertThatThrownBy(() -> authService.reissue(serviceToken))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("잘못된 refresh token 입니다.");
+        }
+
+        @DisplayName("refresh token 이 일치하지 않을 경우 예외가 발생한다")
+        @Test
+        void notEqualsRefreshToken() {
+            final long existMemberId = 0L;
+            final String notExistRefreshToken = "refreshToken";
+            final String serviceToken = createToken(existMemberId, PROVIDER, notExistRefreshToken);
+
+            given(tokenGenerator.extract(serviceToken))
+                .willReturn(new UserTokenResponse(existMemberId, PROVIDER, notExistRefreshToken));
+            given(tokenRepository.existRefreshToken(existMemberId, notExistRefreshToken))
+                .willReturn(false);
+
+            assertThatThrownBy(() -> authService.reissue(serviceToken))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("잘못된 refresh token 입니다.");
+        }
+
+        private String createToken(final Long memberId, final String provider, final String token) {
+            return Jwts.builder()
+                .claim("memberId", memberId)
+                .claim("provider", provider)
+                .claim("token", token)
+                .compact();
         }
     }
 }

@@ -23,4 +23,9 @@ public class FakeConnector implements OAuthConnector {
     public UserResponse requestUserInfo(final String tokenType, final String accessToken) {
         return null;
     }
+
+    @Override
+    public TokenResponse requestAccessToken(final String refreshToken) {
+        return null;
+    }
 }

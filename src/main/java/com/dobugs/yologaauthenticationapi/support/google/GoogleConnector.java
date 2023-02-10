@@ -22,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 @Component
 public class GoogleConnector implements OAuthConnector {
 
+    private static final int REFRESH_TOKEN_EXPIRES_IN = -1;
+
     private final OAuthProvider googleProvider;
 
     @Override
@@ -32,13 +34,21 @@ public class GoogleConnector implements OAuthConnector {
     @Override
     public TokenResponse requestToken(final String authorizationCode, final String redirectUrl) {
         final GoogleTokenResponse response = connectForToken(authorizationCode, redirectUrl);
-        return new TokenResponse(response.access_token(), response.refresh_token(), response.token_type());
+        return new TokenResponse(response.access_token(), response.expires_in(), response.refresh_token(),
+            REFRESH_TOKEN_EXPIRES_IN, response.token_type());
     }
 
     @Override
     public UserResponse requestUserInfo(final String tokenType, final String accessToken) {
         final GoogleUserResponse response = connectForUserInfo(tokenType, accessToken);
         return new UserResponse(response.id());
+    }
+
+    @Override
+    public TokenResponse requestAccessToken(final String refreshToken) {
+        final GoogleTokenResponse response = connectForAccessToken(refreshToken);
+        return new TokenResponse(response.access_token(), response.expires_in(), refreshToken,
+            REFRESH_TOKEN_EXPIRES_IN, response.token_type());
     }
 
     private GoogleTokenResponse connectForToken(final String authorizationCode, final String redirectUrl) {
@@ -62,6 +72,17 @@ public class GoogleConnector implements OAuthConnector {
         validateConnectionResponseIsSuccess(response);
         return Optional.ofNullable(response.getBody())
             .orElseThrow(() -> new IllegalArgumentException("Google 의 사용자 정보를 가져오는 과정에서 연결에 실패하였습니다."));
+    }
+
+    private GoogleTokenResponse connectForAccessToken(final String refreshToken) {
+        final ResponseEntity<GoogleTokenResponse> response = REST_TEMPLATE.postForEntity(
+            googleProvider.generateAccessTokenUrl(refreshToken),
+            googleProvider.createAccessTokenEntity(),
+            GoogleTokenResponse.class
+        );
+        validateConnectionResponseIsSuccess(response);
+        return Optional.ofNullable(response.getBody())
+            .orElseThrow(() -> new IllegalArgumentException("Google 에서 Access Token 을 재발급 받는 과정에서 연결에 실패하였습니다."));
     }
 
     private void validateConnectionResponseIsSuccess(final ResponseEntity<?> response) {

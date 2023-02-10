@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,6 +36,12 @@ public class AuthController {
         @RequestBody final OAuthCodeRequest codeRequest
     ) {
         final OAuthTokenResponse response = authService.login(request, codeRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/oauth2/reissue")
+    public ResponseEntity<OAuthTokenResponse> reissue(@RequestHeader("Authorization") final String refreshToken) {
+        final OAuthTokenResponse response = authService.reissue(refreshToken);
         return ResponseEntity.ok(response);
     }
 }

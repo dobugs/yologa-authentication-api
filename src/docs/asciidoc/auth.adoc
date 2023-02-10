@@ -16,3 +16,9 @@ Request
 include::{snippets}/auth/login/http-request.adoc[]
 Response
 include::{snippets}/auth/login/http-response.adoc[]
+
+== OAuth2.0 Access Token 재발급
+Request
+include::{snippets}/auth/reissue/http-request.adoc[]
+Response
+include::{snippets}/auth/reissue/http-response.adoc[]

@@ -15,7 +15,7 @@ import com.dobugs.yologaauthenticationapi.domain.Member;
 
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @DataJpaTest
-@DisplayName("Member 레파지토리 테스트")
+@DisplayName("Member 레포지토리 테스트")
 class MemberRepositoryTest {
 
     @Autowired
