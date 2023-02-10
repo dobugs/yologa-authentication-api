@@ -1,4 +1,4 @@
 package com.dobugs.yologaauthenticationapi.support.dto.response;
 
-public record UserTokenResponse(Long memberId, String token) {
+public record UserTokenResponse(Long memberId, String provider, String token) {
 }

@@ -36,6 +36,7 @@ class TokenGeneratorTest {
     public class create {
 
         private static final long MEMBER_ID = 0L;
+        private static final String PROVIDER = "google";
         private static final String ACCESS_TOKEN = "accessToken";
         private static final String REFRESH_TOKEN = "refreshToken";
         private static final int EXPIRES_IN = 1000;
@@ -45,15 +46,17 @@ class TokenGeneratorTest {
         void success() {
             final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, "bearer");
 
-            final ServiceTokenResponse serviceTokenResponse = tokenGenerator.create(MEMBER_ID, tokenResponse);
+            final ServiceTokenResponse serviceTokenResponse = tokenGenerator.create(MEMBER_ID, PROVIDER, tokenResponse);
 
             final Integer memberId = extractMemberId(serviceTokenResponse.accessToken());
             final String accessToken = extractToken(serviceTokenResponse.accessToken());
             final String refreshToken = extractToken(serviceTokenResponse.refreshToken());
+            final String provider = extractProvider(serviceTokenResponse.accessToken());
             assertAll(
                 () -> assertThat(memberId).isEqualTo(MEMBER_ID),
                 () -> assertThat(accessToken).isEqualTo(ACCESS_TOKEN),
-                () -> assertThat(refreshToken).isEqualTo(REFRESH_TOKEN)
+                () -> assertThat(refreshToken).isEqualTo(REFRESH_TOKEN),
+                () -> assertThat(provider).isEqualTo(PROVIDER)
             );
         }
 
@@ -73,6 +76,15 @@ class TokenGeneratorTest {
                 .parseClaimsJws(createdToken)
                 .getBody()
                 .get("token");
+        }
+
+        private String extractProvider(final String createdToken) {
+            return (String) Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(createdToken)
+                .getBody()
+                .get("provider");
         }
     }
 }

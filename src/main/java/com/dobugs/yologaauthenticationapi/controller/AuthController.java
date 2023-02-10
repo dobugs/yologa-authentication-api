@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.dobugs.yologaauthenticationapi.service.AuthService;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
-import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthProviderRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
@@ -41,11 +40,8 @@ public class AuthController {
     }
 
     @PostMapping("/oauth2/reissue")
-    public ResponseEntity<OAuthTokenResponse> reissue(
-        @ModelAttribute final OAuthProviderRequest request,
-        @RequestHeader("Authorization") final String refreshToken
-    ) {
-        final OAuthTokenResponse response = authService.reissue(request, refreshToken);
+    public ResponseEntity<OAuthTokenResponse> reissue(@RequestHeader("Authorization") final String refreshToken) {
+        final OAuthTokenResponse response = authService.reissue(refreshToken);
         return ResponseEntity.ok(response);
     }
 }

@@ -12,7 +12,6 @@ import com.dobugs.yologaauthenticationapi.domain.Provider;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
-import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthProviderRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
@@ -56,15 +55,15 @@ public class AuthService {
         final UserResponse userResponse = oAuthConnector.requestUserInfo(tokenResponse.tokenType(), tokenResponse.accessToken());
 
         final Long memberId = saveMember(provider, tokenResponse, userResponse);
-        final ServiceTokenResponse serviceTokenResponse = tokenGenerator.create(memberId, tokenResponse);
+        final ServiceTokenResponse serviceTokenResponse = tokenGenerator.create(memberId, provider, tokenResponse);
 
         return new OAuthTokenResponse(serviceTokenResponse.accessToken(), serviceTokenResponse.refreshToken());
     }
 
     @Transactional
-    public OAuthTokenResponse reissue(final OAuthProviderRequest request, final String serviceToken) {
-        final OAuthConnector oAuthConnector = selectConnector(request.provider());
+    public OAuthTokenResponse reissue(final String serviceToken) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
+        final OAuthConnector oAuthConnector = selectConnector(userTokenResponse.provider());
         final String refreshToken = decode(userTokenResponse.token());
 
         validateTheExistenceOfRefreshToken(userTokenResponse.memberId(), refreshToken);

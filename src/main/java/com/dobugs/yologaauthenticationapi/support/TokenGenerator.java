@@ -21,6 +21,7 @@ import io.jsonwebtoken.security.Keys;
 public class TokenGenerator {
 
     private static final String PAYLOAD_NAME_OF_MEMBER_ID = "memberId";
+    private static final String PAYLOAD_NAME_OF_PROVIDER = "provider";
     private static final String PAYLOAD_NAME_OF_TOKEN = "token";
 
     private final SecretKey secretKey;
@@ -34,10 +35,10 @@ public class TokenGenerator {
         this.defaultRefreshTokenExpiresIn = defaultRefreshTokenExpiresIn;
     }
 
-    public ServiceTokenResponse create(final Long memberId, final TokenResponse tokenResponse) {
+    public ServiceTokenResponse create(final Long memberId, final String provider, final TokenResponse tokenResponse) {
         final Date now = new Date();
-        final String accessToken = createToken(memberId, tokenResponse.accessToken(), now, new Date(now.getTime() + tokenResponse.expiresIn()));
-        final String refreshToken = createToken(memberId, tokenResponse.refreshToken(), now, extractRefreshTokenExpiration(tokenResponse, now));
+        final String accessToken = createToken(memberId, provider, tokenResponse.accessToken(), now, new Date(now.getTime() + tokenResponse.expiresIn()));
+        final String refreshToken = createToken(memberId, provider, tokenResponse.refreshToken(), now, extractRefreshTokenExpiration(tokenResponse, now));
 
         return new ServiceTokenResponse(accessToken, refreshToken);
     }
@@ -45,7 +46,8 @@ public class TokenGenerator {
     public UserTokenResponse extract(final String serviceToken) {
         final Long memberId = extractMemberId(serviceToken);
         final String token = extractToken(serviceToken);
-        return new UserTokenResponse(memberId, token);
+        final String provider = extractProvider(serviceToken);
+        return new UserTokenResponse(memberId, provider, token);
     }
 
     private Date extractRefreshTokenExpiration(final TokenResponse tokenResponse, final Date now) {
@@ -56,10 +58,11 @@ public class TokenGenerator {
         return new Date(now.getTime() + expiresIn);
     }
 
-    private String createToken(final Long memberId, final String token, final Date issued, final Date expiration) {
+    private String createToken(final Long memberId, final String provider, final String token, final Date issued, final Date expiration) {
         return Jwts.builder()
             .claim(PAYLOAD_NAME_OF_MEMBER_ID, memberId)
             .claim(PAYLOAD_NAME_OF_TOKEN, token)
+            .claim(PAYLOAD_NAME_OF_PROVIDER, provider)
             .setIssuedAt(issued)
             .setExpiration(expiration)
             .signWith(secretKey, SignatureAlgorithm.HS256)
@@ -69,6 +72,11 @@ public class TokenGenerator {
     private Long extractMemberId(final String serviceToken) {
         return (Long) extractClaims(serviceToken)
             .get(PAYLOAD_NAME_OF_MEMBER_ID);
+    }
+
+    private String extractProvider(final String serviceToken) {
+        return (String) extractClaims(serviceToken)
+            .get(PAYLOAD_NAME_OF_PROVIDER);
     }
 
     private String extractToken(final String serviceToken) {
