@@ -2,7 +2,6 @@ package com.dobugs.yologaauthenticationapi.domain;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
-import org.springframework.data.redis.core.index.Indexed;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,11 +20,10 @@ public class OAuthToken {
 
     private Provider provider;
     private String accessToken;
-
-    @Indexed
     private String refreshToken;
+    private Long expiration;
 
-    public static OAuthToken login(final Long memberId, final Provider provider, final String refreshToken) {
-        return new OAuthToken(memberId, provider, null, refreshToken);
+    public static OAuthToken login(final Long memberId, final Provider provider, final String refreshToken, final Long expiration) {
+        return new OAuthToken(memberId, provider, null, refreshToken, expiration);
     }
 }
