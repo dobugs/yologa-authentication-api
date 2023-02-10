@@ -101,4 +101,24 @@ class AuthControllerTest {
             )
         ;
     }
+
+    @DisplayName("Access Token 을 재발급받는다")
+    @Test
+    void reissue() throws Exception {
+        final String accessToken = "accessToken";
+        final String refreshToken = "refreshToken";
+
+        final OAuthTokenResponse response = new OAuthTokenResponse(accessToken, refreshToken);
+        given(authService.reissue(refreshToken)).willReturn(response);
+
+        mockMvc.perform(post(BASIC_URL + "/oauth2/reissue")
+                .header("Authorization", refreshToken))
+            .andExpect(status().isOk())
+            .andDo(document(
+                "auth/reissue",
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()))
+            )
+        ;
+    }
 }
