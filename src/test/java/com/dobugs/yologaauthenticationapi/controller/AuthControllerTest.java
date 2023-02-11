@@ -38,7 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @DisplayName("Auth 컨트롤러 테스트")
 class AuthControllerTest {
 
-    private static final String BASIC_URL = "/api/v1";
+    private static final String BASIC_URL = "/api/v1/oauth2";
 
     @Autowired
     private MockMvc mockMvc;
@@ -62,7 +62,7 @@ class AuthControllerTest {
         final OAuthLinkResponse response = new OAuthLinkResponse(redirectUrl);
         given(authService.generateOAuthUrl(any())).willReturn(response);
 
-        mockMvc.perform(get(BASIC_URL + "/oauth2/login")
+        mockMvc.perform(get(BASIC_URL + "/login")
                 .params(params))
             .andExpect(status().isOk())
             .andDo(document(
@@ -89,7 +89,7 @@ class AuthControllerTest {
         final OAuthTokenResponse response = new OAuthTokenResponse("accessToken", "refreshToken");
         given(authService.login(any(), any())).willReturn(response);
 
-        mockMvc.perform(post(BASIC_URL + "/oauth2/login")
+        mockMvc.perform(post(BASIC_URL + "/login")
                 .params(params)
                 .content(body)
                 .contentType(MediaType.APPLICATION_JSON))
@@ -111,11 +111,27 @@ class AuthControllerTest {
         final OAuthTokenResponse response = new OAuthTokenResponse(accessToken, refreshToken);
         given(authService.reissue(refreshToken)).willReturn(response);
 
-        mockMvc.perform(post(BASIC_URL + "/oauth2/reissue")
+        mockMvc.perform(post(BASIC_URL + "/reissue")
                 .header("Authorization", refreshToken))
             .andExpect(status().isOk())
             .andDo(document(
                 "auth/reissue",
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()))
+            )
+        ;
+    }
+
+    @DisplayName("로그아웃한다")
+    @Test
+    void logout() throws Exception {
+        final String accessToken = "accessToken";
+
+        mockMvc.perform(post(BASIC_URL + "/logout")
+                .header("Authorization", accessToken))
+            .andExpect(status().isOk())
+            .andDo(document(
+                "auth/logout",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()))
             )

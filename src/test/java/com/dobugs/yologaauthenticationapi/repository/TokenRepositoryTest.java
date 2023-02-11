@@ -2,6 +2,7 @@ package com.dobugs.yologaauthenticationapi.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -123,6 +124,76 @@ class TokenRepositoryTest {
             assertThat(actual)
                 .isLessThanOrEqualTo(expected)
                 .isGreaterThan(0L);
+        }
+    }
+
+    @DisplayName("삭제 테스트")
+    @Nested
+    public class delete {
+
+        private static final long MEMBER_ID = 0L;
+
+        @BeforeEach
+        void setUp() {
+            final HashMap<String, Object> value = new HashMap<>();
+            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, Provider.GOOGLE.getName());
+            value.put(OAuthToken.KEY_NAME_OF_ACCESS_TOKEN, "accessToken");
+            value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, "refreshToken");
+
+            final HashOperations<String, Object, Object> operations = redisTemplate.opsForHash();
+            operations.putAll(String.valueOf(MEMBER_ID), value);
+        }
+
+        @DisplayName("key 에 해당하는 모든 정보를 제거한다")
+        @Test
+        void deleteValue() {
+            tokenRepository.delete(MEMBER_ID);
+
+            final Boolean hasProvider = operations.hasKey(String.valueOf(MEMBER_ID), OAuthToken.KEY_NAME_OF_PROVIDER);
+            final Boolean hasAccessToken = operations.hasKey(String.valueOf(MEMBER_ID), OAuthToken.KEY_NAME_OF_ACCESS_TOKEN);
+            final Boolean hasRefreshToken = operations.hasKey(String.valueOf(MEMBER_ID), OAuthToken.KEY_NAME_OF_REFRESH_TOKEN);
+            assertAll(
+                () -> assertThat(hasProvider).isFalse(),
+                () -> assertThat(hasAccessToken).isFalse(),
+                () -> assertThat(hasRefreshToken).isFalse()
+            );
+        }
+    }
+
+    @DisplayName("사용자 존재 여부 테스트")
+    @Nested
+    public class exist {
+
+        private static final long EXIST_MEMBER_ID = 0L;
+        private static final String EXIST_REFRESH_TOKEN = "refreshToken";
+
+        @BeforeEach
+        void setUp() {
+            final HashMap<String, Object> value = new HashMap<>();
+            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, Provider.GOOGLE.getName());
+            value.put(OAuthToken.KEY_NAME_OF_ACCESS_TOKEN, null);
+            value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, EXIST_REFRESH_TOKEN);
+
+            final HashOperations<String, Object, Object> operations = redisTemplate.opsForHash();
+            operations.putAll(String.valueOf(EXIST_MEMBER_ID), value);
+        }
+
+        @DisplayName("member id 에 해당하는 정보가 존재할 경우 true 를 반환한다")
+        @Test
+        void existMemberId() {
+            final boolean exist = tokenRepository.exist(EXIST_MEMBER_ID);
+
+            assertThat(exist).isTrue();
+        }
+
+        @DisplayName("member id 에 해당하는 정보가 존재하지 않을 경우 false 를 반환한다")
+        @Test
+        void notExistMemberId() {
+            final long notExistMemberId = -1L;
+
+            final boolean exist = tokenRepository.exist(notExistMemberId);
+
+            assertThat(exist).isFalse();
         }
     }
 

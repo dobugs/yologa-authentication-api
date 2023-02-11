@@ -45,6 +45,17 @@ public class TokenRepository {
         }
     }
 
+    public void delete(final Long memberId) {
+        operations.delete(String.valueOf(memberId),
+            OAuthToken.KEY_NAME_OF_PROVIDER, OAuthToken.KEY_NAME_OF_ACCESS_TOKEN, OAuthToken.KEY_NAME_OF_REFRESH_TOKEN
+        );
+    }
+
+    public boolean exist(final Long memberId) {
+        final String key = String.valueOf(memberId);
+        return operations.hasKey(key, OAuthToken.KEY_NAME_OF_REFRESH_TOKEN);
+    }
+
     public boolean existRefreshToken(final Long memberId, final String refreshToken) {
         final String key = String.valueOf(memberId);
         final String savedRefreshToken = (String) operations.get(key, OAuthToken.KEY_NAME_OF_REFRESH_TOKEN);
