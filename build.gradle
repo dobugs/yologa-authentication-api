@@ -76,8 +76,15 @@ build {
 
 bootJar {
     dependsOn asciidoctor
-    from ("${asciidoctor.outputDir}/html5") {
-        into 'static/docs'
+
+    copy {
+        from "${asciidoctor.outputDir}"
+        into 'src/main/resources/static/docs'
+    }
+
+    copy {
+        from file("src/main/resources/static")
+        into file("build/resources/main/static")
     }
 }
 /* RestDocs End */
