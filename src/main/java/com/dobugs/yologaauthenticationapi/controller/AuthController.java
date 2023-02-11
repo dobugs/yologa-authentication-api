@@ -18,19 +18,19 @@ import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenRespons
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/oauth2")
 @RestController
 public class AuthController {
 
     private final AuthService authService;
 
-    @GetMapping("/oauth2/login")
+    @GetMapping("/login")
     public ResponseEntity<OAuthLinkResponse> generateOAuthUrl(@ModelAttribute final OAuthRequest request) {
         final OAuthLinkResponse response = authService.generateOAuthUrl(request);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/oauth2/login")
+    @PostMapping("/login")
     public ResponseEntity<OAuthTokenResponse> login(
         @ModelAttribute final OAuthRequest request,
         @RequestBody final OAuthCodeRequest codeRequest
@@ -39,9 +39,15 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/oauth2/reissue")
+    @PostMapping("/reissue")
     public ResponseEntity<OAuthTokenResponse> reissue(@RequestHeader("Authorization") final String refreshToken) {
         final OAuthTokenResponse response = authService.reissue(refreshToken);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") final String accessToken) {
+        authService.logout(accessToken);
+        return ResponseEntity.ok().build();
     }
 }

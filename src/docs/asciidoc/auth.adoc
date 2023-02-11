@@ -22,3 +22,9 @@ Request
 include::{snippets}/auth/reissue/http-request.adoc[]
 Response
 include::{snippets}/auth/reissue/http-response.adoc[]
+
+== OAuth2.0 로그아웃
+Request
+include::{snippets}/auth/logout/http-request.adoc[]
+Response
+include::{snippets}/auth/logout/http-response.adoc[]
