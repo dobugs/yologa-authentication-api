@@ -99,12 +99,12 @@ class AuthServiceTest {
 
             given(tokenGenerator.extract(serviceToken))
                 .willReturn(new UserTokenResponse(notExistMemberId, PROVIDER, existRefreshToken));
-            given(tokenRepository.existRefreshToken(notExistMemberId, existRefreshToken))
+            given(tokenRepository.exist(notExistMemberId))
                 .willReturn(false);
 
             assertThatThrownBy(() -> authService.reissue(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("잘못된 refresh token 입니다.");
+                .hasMessageContaining("로그인이 필요합니다.");
         }
 
         @DisplayName("refresh token 이 일치하지 않을 경우 예외가 발생한다")
@@ -116,6 +116,8 @@ class AuthServiceTest {
 
             given(tokenGenerator.extract(serviceToken))
                 .willReturn(new UserTokenResponse(existMemberId, PROVIDER, notExistRefreshToken));
+            given(tokenRepository.exist(existMemberId))
+                .willReturn(true);
             given(tokenRepository.existRefreshToken(existMemberId, notExistRefreshToken))
                 .willReturn(false);
 
@@ -135,7 +137,7 @@ class AuthServiceTest {
 
     @DisplayName("로그아웃 시 로그인 여부 검증 테스트")
     @Nested
-    public class validateTheExistence {
+    public class validateLogged {
 
         @DisplayName("memberId 가 존재하지 않을 경우 예외가 발생한다")
         @Test

@@ -77,7 +77,7 @@ public class AuthService {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
         final Long memberId = userTokenResponse.memberId();
 
-        validateTheExistence(memberId);
+        validateLogged(memberId);
         tokenRepository.delete(memberId);
     }
 
@@ -98,13 +98,14 @@ public class AuthService {
         tokenRepository.saveRefreshToken(memberId, refreshToken);
     }
 
-    private void validateTheExistence(final Long memberId) {
+    private void validateLogged(final Long memberId) {
         if (!tokenRepository.exist(memberId)) {
-            throw new IllegalArgumentException("로그인이 필요합니다.");
+            throw new IllegalArgumentException(String.format("로그인이 필요합니다. [%d]", memberId));
         }
     }
 
     private void validateTheExistenceOfRefreshToken(final Long memberId, final String refreshToken) {
+        validateLogged(memberId);
         if (!tokenRepository.existRefreshToken(memberId, refreshToken)) {
             throw new IllegalArgumentException("잘못된 refresh token 입니다.");
         }
