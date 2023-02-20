@@ -5,6 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.dobugs.yologaauthenticationapi.domain.Member;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
+import com.dobugs.yologaauthenticationapi.service.dto.request.MemberUpdateRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.MemberResponse;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
@@ -20,8 +21,7 @@ public class MemberService {
     private final TokenGenerator tokenGenerator;
 
     public MemberResponse findById(final Long memberId) {
-        final Member savedMember = memberRepository.findById(memberId)
-            .orElseThrow(() -> new IllegalArgumentException(String.format("존재하지 않는 사용자입니다. [%d]", memberId)));
+        final Member savedMember = findMemberById(memberId);
         return new MemberResponse(
             savedMember.getId(),
             savedMember.getOauthId(),
@@ -35,5 +35,18 @@ public class MemberService {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
         final Long memberId = userTokenResponse.memberId();
         return findById(memberId);
+    }
+
+    @Transactional
+    public void update(final String serviceToken, final MemberUpdateRequest request) {
+        final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
+        final Long memberId = userTokenResponse.memberId();
+        final Member savedMember = findMemberById(memberId);
+        savedMember.update(request.nickname(), request.phoneNumber());
+    }
+
+    private Member findMemberById(final Long memberId) {
+        return memberRepository.findById(memberId)
+            .orElseThrow(() -> new IllegalArgumentException(String.format("존재하지 않는 사용자입니다. [%d]", memberId)));
     }
 }

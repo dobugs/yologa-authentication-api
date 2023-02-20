@@ -2,6 +2,7 @@ package com.dobugs.yologaauthenticationapi.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
@@ -18,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.dobugs.yologaauthenticationapi.domain.Member;
 import com.dobugs.yologaauthenticationapi.domain.Provider;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
+import com.dobugs.yologaauthenticationapi.service.dto.request.MemberUpdateRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.MemberResponse;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
@@ -78,12 +80,17 @@ class MemberServiceTest {
         private static final String PROVIDER = Provider.GOOGLE.getName();
         private static final String ACCESS_TOKEN = "accessToken";
 
+        private String serviceToken;
+
+        @BeforeEach
+        void setUp() {
+            serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+        }
+
         @DisplayName("JWT 를 이용하여 사용자 정보를 조회한다")
         @Test
         void success() {
-            final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
-
             final Member member = mock(Member.class);
             final Optional<Member> savedMember = Optional.of(member);
             given(member.getId()).willReturn(MEMBER_ID);
@@ -96,10 +103,59 @@ class MemberServiceTest {
         @DisplayName("존재하지 않는 사용자를 조회하면 예외가 발생한다")
         @Test
         void fail() {
-            final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
+            assertThatThrownBy(() -> memberService.findMe(serviceToken))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("존재하지 않는 사용자입니다.");
+        }
+
+        private String createToken(final Long memberId, final String provider, final String token) {
+            return Jwts.builder()
+                .claim("memberId", memberId)
+                .claim("provider", provider)
+                .claim("token", token)
+                .compact();
+        }
+    }
+
+    @DisplayName("내 정보 수정 테스트")
+    @Nested
+    public class update {
+
+        private static final Long MEMBER_ID = 0L;
+        private static final String PROVIDER = Provider.GOOGLE.getName();
+        private static final String ACCESS_TOKEN = "accessToken";
+        private static final String NICKNAME = "유콩";
+        private static final String PHONE_NUMBER = "010-0000-0000";
+
+        private String serviceToken;
+        private MemberUpdateRequest request;
+
+        @BeforeEach
+        void setUp() {
+            serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
 
-            assertThatThrownBy(() -> memberService.findMe(serviceToken))
+            request = new MemberUpdateRequest(NICKNAME, PHONE_NUMBER);
+        }
+
+        @DisplayName("내 정보를 수정한다")
+        @Test
+        void success() {
+            final Member member = new Member("oauthId");
+            given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
+
+            memberService.update(serviceToken, request);
+
+            assertAll(
+                () -> assertThat(member.getNickname()).isEqualTo(NICKNAME),
+                () -> assertThat(member.getPhoneNumber()).isEqualTo(PHONE_NUMBER)
+            );
+        }
+
+        @DisplayName("존재하지 않는 사용자 정보를 수정하면 예외가 발생한다")
+        @Test
+        void fail() {
+            assertThatThrownBy(() -> memberService.update(serviceToken, request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("존재하지 않는 사용자입니다.");
         }

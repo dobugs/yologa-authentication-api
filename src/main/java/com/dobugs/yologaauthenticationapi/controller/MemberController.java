@@ -3,11 +3,13 @@ package com.dobugs.yologaauthenticationapi.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dobugs.yologaauthenticationapi.service.MemberService;
+import com.dobugs.yologaauthenticationapi.service.dto.request.MemberUpdateRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.MemberResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -29,5 +31,14 @@ public class MemberController {
     public ResponseEntity<MemberResponse> findMe(@RequestHeader("Authorization") final String accessToken) {
         final MemberResponse response = memberService.findMe(accessToken);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> update(
+        @RequestHeader("Authorization") final String accessToken,
+        final MemberUpdateRequest request
+    ) {
+        memberService.update(accessToken, request);
+        return ResponseEntity.ok().build();
     }
 }

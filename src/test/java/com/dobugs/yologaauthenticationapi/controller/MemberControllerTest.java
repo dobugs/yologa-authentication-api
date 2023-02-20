@@ -3,6 +3,7 @@ package com.dobugs.yologaauthenticationapi.controller;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
@@ -17,11 +18,14 @@ import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDoc
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.dobugs.yologaauthenticationapi.service.MemberService;
+import com.dobugs.yologaauthenticationapi.service.dto.request.MemberUpdateRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.MemberResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @AutoConfigureMockMvc
 @AutoConfigureRestDocs
@@ -34,6 +38,9 @@ class MemberControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockBean
     private MemberService memberService;
@@ -75,6 +82,27 @@ class MemberControllerTest {
             .andExpect(status().isOk())
             .andDo(document(
                 "member/find-me",
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()))
+            )
+        ;
+    }
+
+    @DisplayName("내 정보를 수정한다")
+    @Test
+    void update() throws Exception {
+        final String accessToken = "accessToken";
+
+        final MemberUpdateRequest request = new MemberUpdateRequest("유콩", "010-0000-0000");
+        final String body = objectMapper.writeValueAsString(request);
+
+        mockMvc.perform(post(BASIC_URL)
+                .header("Authorization", accessToken)
+                .content(body)
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andDo(document(
+                "member/update",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()))
             )
