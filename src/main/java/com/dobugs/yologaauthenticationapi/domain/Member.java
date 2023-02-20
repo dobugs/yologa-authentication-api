@@ -25,6 +25,9 @@ public class Member extends BaseEntity {
     private String nickname;
 
     @Column
+    private String phoneNumber;
+
+    @Column
     private int resourceId;
 
     public Member(final String oauthId) {
