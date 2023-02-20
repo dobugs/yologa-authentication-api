@@ -19,6 +19,7 @@ public class Member extends BaseEntity {
     private static final Pattern PHONE_NUMBER_PATTERN = Pattern.compile("^\\d{3}-\\d{3,4}-\\d{4}$");
     private static final int NICKNAME_LENGTH = 50;
     private static final int PHONE_NUMBER_LENGTH = 50;
+    private static final String INITIAL_NICKNAME_PREFIX = "DOBUGS#";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,6 +39,10 @@ public class Member extends BaseEntity {
 
     public Member(final String oauthId) {
         this.oauthId = oauthId;
+    }
+
+    public void init() {
+        nickname = INITIAL_NICKNAME_PREFIX + id;
     }
 
     public void update(final String nickname, final String phoneNumber) {

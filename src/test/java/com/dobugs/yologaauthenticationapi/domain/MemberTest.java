@@ -12,6 +12,21 @@ import org.junit.jupiter.api.Test;
 @DisplayName("Member 도메인 테스트")
 class MemberTest {
 
+    @DisplayName("사용자 초기화 테스트")
+    @Nested
+    public class init {
+
+        @DisplayName("사용자 정보를 초기화한다")
+        @Test
+        void success() {
+            final Member member = new Member("oauthId");
+
+            member.init();
+
+            assertThat(member.getNickname()).contains("DOBUGS#");
+        }
+    }
+
     @DisplayName("사용자 수정 테스트")
     @Nested
     public class update {

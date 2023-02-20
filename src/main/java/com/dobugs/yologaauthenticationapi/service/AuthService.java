@@ -83,7 +83,12 @@ public class AuthService {
 
     private Long saveMember(final String provider, final TokenResponse tokenResponse, final UserResponse userResponse) {
         final Member savedMember = memberRepository.findByOauthId(userResponse.oAuthId())
-            .orElseGet(() -> memberRepository.save(new Member(userResponse.oAuthId())));
+            .orElseGet(() -> {
+                final Member member = new Member(userResponse.oAuthId());
+                memberRepository.save(member);
+                member.init();
+                return member;
+            });
 
         final OAuthToken oAuthToken = OAuthToken.login(
             savedMember.getId(), Provider.findOf(provider),
