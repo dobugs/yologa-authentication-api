@@ -3,6 +3,7 @@ package com.dobugs.yologaauthenticationapi.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,6 +22,12 @@ public class MemberController {
     @GetMapping("/{memberId}")
     public ResponseEntity<MemberResponse> findById(@PathVariable final Long memberId) {
         final MemberResponse response = memberService.findById(memberId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<MemberResponse> findMe(@RequestHeader("Authorization") final String accessToken) {
+        final MemberResponse response = memberService.findMe(accessToken);
         return ResponseEntity.ok(response);
     }
 }
