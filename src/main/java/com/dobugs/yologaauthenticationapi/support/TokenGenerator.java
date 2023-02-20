@@ -13,6 +13,7 @@ import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenRespo
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -44,9 +45,10 @@ public class TokenGenerator {
     }
 
     public UserTokenResponse extract(final String serviceToken) {
-        final Long memberId = extractMemberId(serviceToken);
-        final String token = extractToken(serviceToken);
-        final String provider = extractProvider(serviceToken);
+        final Claims claims = extractClaims(serviceToken);
+        final Long memberId = extractMemberId(claims);
+        final String token = extractToken(claims);
+        final String provider = extractProvider(claims);
         return new UserTokenResponse(memberId, provider, token);
     }
 
@@ -69,26 +71,28 @@ public class TokenGenerator {
             .compact();
     }
 
-    private Long extractMemberId(final String serviceToken) {
-        return (Long) extractClaims(serviceToken)
-            .get(PAYLOAD_NAME_OF_MEMBER_ID);
+    private Long extractMemberId(final Claims claims) {
+        final Integer memberId = (Integer)claims.get(PAYLOAD_NAME_OF_MEMBER_ID);
+        return memberId.longValue();
     }
 
-    private String extractProvider(final String serviceToken) {
-        return (String) extractClaims(serviceToken)
-            .get(PAYLOAD_NAME_OF_PROVIDER);
+    private String extractProvider(final Claims claims) {
+        return (String) claims.get(PAYLOAD_NAME_OF_PROVIDER);
     }
 
-    private String extractToken(final String serviceToken) {
-        return (String) extractClaims(serviceToken)
-            .get(PAYLOAD_NAME_OF_TOKEN);
+    private String extractToken(final Claims claims) {
+        return (String) claims.get(PAYLOAD_NAME_OF_TOKEN);
     }
 
     private Claims extractClaims(final String serviceToken) {
-        return Jwts.parserBuilder()
-            .setSigningKey(secretKey)
-            .build()
-            .parseClaimsJws(serviceToken)
-            .getBody();
+        try {
+            return Jwts.parserBuilder()
+                .setSigningKey(secretKey)
+                .build()
+                .parseClaimsJws(serviceToken)
+                .getBody();
+        } catch (ExpiredJwtException e) {
+            throw new IllegalArgumentException("토큰의 만료 시간이 지났습니다.");
+        }
     }
 }
