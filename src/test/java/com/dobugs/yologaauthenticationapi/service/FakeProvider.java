@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
@@ -53,16 +55,28 @@ public class FakeProvider implements OAuthProvider {
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createTokenEntity() {
-        return null;
+        return new HttpEntity<>(createTokenHeaders());
     }
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createUserEntity(final String tokenType, final String accessToken) {
-        return null;
+        return new HttpEntity<>(createUserHeaders(tokenType, accessToken));
     }
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createAccessTokenEntity() {
-        return null;
+        return new HttpEntity<>(createTokenHeaders());
+    }
+
+    private HttpHeaders createTokenHeaders() {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        return headers;
+    }
+
+    private HttpHeaders createUserHeaders(final String tokenType, final String accessToken) {
+        final HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", String.join(" ", tokenType, accessToken));
+        return headers;
     }
 }

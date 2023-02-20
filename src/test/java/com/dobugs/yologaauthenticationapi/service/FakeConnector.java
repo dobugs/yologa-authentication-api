@@ -16,16 +16,24 @@ public class FakeConnector implements OAuthConnector {
 
     @Override
     public TokenResponse requestToken(final String authorizationCode, final String redirectUrl) {
-        return null;
+        return new TokenResponse(
+            "accessToken", 1_000,
+            "refreshToken", 10_000,
+            "Bearer"
+        );
     }
 
     @Override
     public UserResponse requestUserInfo(final String tokenType, final String accessToken) {
-        return null;
+        return new UserResponse(String.valueOf(123456789));
     }
 
     @Override
     public TokenResponse requestAccessToken(final String refreshToken) {
-        return null;
+        return new TokenResponse(
+            "accessToken", 1_000,
+            "refreshToken", 10_000,
+            "Bearer"
+        );
     }
 }
