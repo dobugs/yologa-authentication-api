@@ -55,7 +55,7 @@ class MemberServiceTest {
             final Member member = mock(Member.class);
             final Optional<Member> savedMember = Optional.of(member);
             given(member.getId()).willReturn(memberId);
-            given(memberRepository.findById(memberId)).willReturn(savedMember);
+            given(memberRepository.findByIdAndArchivedIsTrue(memberId)).willReturn(savedMember);
 
             final MemberResponse response = memberService.findById(memberId);
             assertThat(response.id()).isEqualTo(memberId);
@@ -94,7 +94,7 @@ class MemberServiceTest {
             final Member member = mock(Member.class);
             final Optional<Member> savedMember = Optional.of(member);
             given(member.getId()).willReturn(MEMBER_ID);
-            given(memberRepository.findById(MEMBER_ID)).willReturn(savedMember);
+            given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(savedMember);
 
             final MemberResponse response = memberService.findMe(serviceToken);
             assertThat(response.id()).isEqualTo(MEMBER_ID);
@@ -142,7 +142,7 @@ class MemberServiceTest {
         @Test
         void success() {
             final Member member = new Member("oauthId");
-            given(memberRepository.findById(MEMBER_ID)).willReturn(Optional.of(member));
+            given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.of(member));
 
             memberService.update(serviceToken, request);
 
@@ -156,6 +156,50 @@ class MemberServiceTest {
         @Test
         void fail() {
             assertThatThrownBy(() -> memberService.update(serviceToken, request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("존재하지 않는 사용자입니다.");
+        }
+
+        private String createToken(final Long memberId, final String provider, final String token) {
+            return Jwts.builder()
+                .claim("memberId", memberId)
+                .claim("provider", provider)
+                .claim("token", token)
+                .compact();
+        }
+    }
+
+    @DisplayName("탈퇴하기 테스트")
+    @Nested
+    public class delete {
+
+        private static final Long MEMBER_ID = 0L;
+        private static final String PROVIDER = Provider.GOOGLE.getName();
+        private static final String ACCESS_TOKEN = "accessToken";
+
+        private String serviceToken;
+
+        @BeforeEach
+        void setUp() {
+            serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+        }
+
+        @DisplayName("탈퇴한다")
+        @Test
+        void success() {
+            final Member member = new Member("oauthId");
+            given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.of(member));
+
+            memberService.delete(serviceToken);
+
+            assertThat(member.isArchived()).isFalse();
+        }
+
+        @DisplayName("존재하지 않는 사용자가 탈퇴하면 예외가 발생한다")
+        @Test
+        void fail() {
+            assertThatThrownBy(() -> memberService.delete(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("존재하지 않는 사용자입니다.");
         }

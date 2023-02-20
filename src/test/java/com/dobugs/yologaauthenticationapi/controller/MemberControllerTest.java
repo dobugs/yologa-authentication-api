@@ -2,6 +2,7 @@ package com.dobugs.yologaauthenticationapi.controller;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
@@ -103,6 +104,22 @@ class MemberControllerTest {
             .andExpect(status().isOk())
             .andDo(document(
                 "member/update",
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()))
+            )
+        ;
+    }
+
+    @DisplayName("탈퇴한다")
+    @Test
+    void deleteMember() throws Exception {
+        final String accessToken = "accessToken";
+
+        mockMvc.perform(delete(BASIC_URL)
+                .header("Authorization", accessToken))
+            .andExpect(status().isOk())
+            .andDo(document(
+                "member/delete",
                 preprocessRequest(prettyPrint()),
                 preprocessResponse(prettyPrint()))
             )

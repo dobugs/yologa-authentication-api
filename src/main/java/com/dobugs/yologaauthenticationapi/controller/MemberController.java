@@ -1,6 +1,7 @@
 package com.dobugs.yologaauthenticationapi.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,6 +40,12 @@ public class MemberController {
         final MemberUpdateRequest request
     ) {
         memberService.update(accessToken, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> delete(@RequestHeader("Authorization") final String accessToken) {
+        memberService.delete(accessToken);
         return ResponseEntity.ok().build();
     }
 }

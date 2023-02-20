@@ -9,4 +9,6 @@ import com.dobugs.yologaauthenticationapi.domain.Member;
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByOauthId(String oauthId);
+
+    Optional<Member> findByIdAndArchivedIsTrue(Long memberId);
 }

@@ -45,8 +45,16 @@ public class MemberService {
         savedMember.update(request.nickname(), request.phoneNumber());
     }
 
+    @Transactional
+    public void delete(final String serviceToken) {
+        final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
+        final Long memberId = userTokenResponse.memberId();
+        final Member savedMember = findMemberById(memberId);
+        savedMember.delete();
+    }
+
     private Member findMemberById(final Long memberId) {
-        return memberRepository.findById(memberId)
+        return memberRepository.findByIdAndArchivedIsTrue(memberId)
             .orElseThrow(() -> new IllegalArgumentException(String.format("존재하지 않는 사용자입니다. [%d]", memberId)));
     }
 }

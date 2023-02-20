@@ -22,3 +22,9 @@ Request
 include::{snippets}/member/update/http-request.adoc[]
 Response
 include::{snippets}/member/update/http-response.adoc[]
+
+== 탈퇴하기
+Request
+include::{snippets}/member/delete/http-request.adoc[]
+Response
+include::{snippets}/member/delete/http-response.adoc[]
