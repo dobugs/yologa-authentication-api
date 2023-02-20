@@ -1,0 +1,30 @@
+= 사용자 API
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 2
+
+== 사용자 정보 조회
+Request
+include::{snippets}/member/find-by-id/http-request.adoc[]
+Response
+include::{snippets}/member/find-by-id/http-response.adoc[]
+
+== 내 정보 조회
+Request
+include::{snippets}/member/find-me/http-request.adoc[]
+Response
+include::{snippets}/member/find-me/http-response.adoc[]
+
+== 내 정보 수정
+Request
+include::{snippets}/member/update/http-request.adoc[]
+Response
+include::{snippets}/member/update/http-response.adoc[]
+
+== 탈퇴하기
+Request
+include::{snippets}/member/delete/http-request.adoc[]
+Response
+include::{snippets}/member/delete/http-response.adoc[]
