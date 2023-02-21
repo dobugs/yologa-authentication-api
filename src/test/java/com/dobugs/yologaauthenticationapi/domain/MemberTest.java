@@ -90,4 +90,19 @@ class MemberTest {
             assertThat(member.isArchived()).isFalse();
         }
     }
+
+    @DisplayName("사용자 프로필 삭제 테스트")
+    @Nested
+    public class deleteProfile {
+
+        @DisplayName("사용자 프로필을 삭제한다")
+        @Test
+        void success() {
+            final Member member = new Member("oauthId");
+
+            member.deleteProfile();
+
+            assertThat(member.getResource()).isNull();
+        }
+    }
 }

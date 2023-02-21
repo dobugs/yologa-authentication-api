@@ -28,3 +28,9 @@ Request
 include::{snippets}/member/delete/http-request.adoc[]
 Response
 include::{snippets}/member/delete/http-response.adoc[]
+
+== 프로필 초기화
+Request
+include::{snippets}/profile/init/http-request.adoc[]
+Response
+include::{snippets}/profile/init/http-response.adoc[]

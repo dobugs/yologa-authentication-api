@@ -59,6 +59,10 @@ public class Member extends BaseEntity {
         deleteEntity();
     }
 
+    public void deleteProfile() {
+        this.resource = null;
+    }
+
     private void validateNickname(final String nickname) {
         if (nickname.length() > NICKNAME_LENGTH) {
             throw new IllegalArgumentException(String.format("닉네임은 %d자 이하여야 합니다. [%s]", NICKNAME_LENGTH, nickname));

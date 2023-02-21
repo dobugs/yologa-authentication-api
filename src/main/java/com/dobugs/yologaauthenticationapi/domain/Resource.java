@@ -29,4 +29,8 @@ public class Resource extends BaseEntity {
 
     @Column(nullable = false, length = 500)
     private String resourceUrl;
+
+    public void delete() {
+        deleteEntity();
+    }
 }

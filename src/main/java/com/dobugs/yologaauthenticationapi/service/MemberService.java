@@ -28,7 +28,7 @@ public class MemberService {
             savedMember.getOauthId(),
             savedMember.getNickname(),
             savedMember.getPhoneNumber(),
-            String.valueOf(savedMember.getResourceId())
+            String.valueOf(savedMember.getResource())
         );
     }
 
