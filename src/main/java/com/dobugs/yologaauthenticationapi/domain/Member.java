@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,8 +36,9 @@ public class Member extends BaseEntity {
     @Column(length = PHONE_NUMBER_LENGTH)
     private String phoneNumber;
 
-    @Column
-    private int resourceId;
+    @OneToOne
+    @JoinColumn(name = "resource_id")
+    private Resource resource;
 
     public Member(final String oauthId) {
         this.oauthId = oauthId;
