@@ -75,4 +75,19 @@ class MemberTest {
                 .hasMessageContaining("올바른 전화번호 형식이 아닙니다.");
         }
     }
+
+    @DisplayName("사용자 삭제 테스트")
+    @Nested
+    public class delete {
+
+        @DisplayName("사용자를 삭제한다")
+        @Test
+        void success() {
+            final Member member = new Member("oauthId");
+
+            member.delete();
+
+            assertThat(member.isArchived()).isFalse();
+        }
+    }
 }
