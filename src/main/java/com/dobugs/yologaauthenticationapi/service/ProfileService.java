@@ -2,11 +2,12 @@ package com.dobugs.yologaauthenticationapi.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.dobugs.yologaauthenticationapi.domain.Member;
+import com.dobugs.yologaauthenticationapi.domain.Resource;
+import com.dobugs.yologaauthenticationapi.domain.ResourceType;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
-import com.dobugs.yologaauthenticationapi.service.dto.request.MemberUpdateRequest;
-import com.dobugs.yologaauthenticationapi.service.dto.response.MemberResponse;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
@@ -15,42 +16,40 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 @Service
-public class MemberService {
+public class ProfileService {
+
+    private static final ResourceType PROFILE_TYPE = ResourceType.PROFILE;
 
     private final MemberRepository memberRepository;
     private final TokenGenerator tokenGenerator;
 
-    @Transactional(readOnly = true)
-    public MemberResponse findById(final Long memberId) {
-        final Member savedMember = findMemberById(memberId);
-        return new MemberResponse(
-            savedMember.getId(),
-            savedMember.getOauthId(),
-            savedMember.getNickname(),
-            savedMember.getPhoneNumber(),
-            String.valueOf(savedMember.getResource())
-        );
-    }
-
-    @Transactional(readOnly = true)
-    public MemberResponse findMe(final String serviceToken) {
+    public String update(final String serviceToken, final MultipartFile newProfile) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
         final Long memberId = userTokenResponse.memberId();
-        return findById(memberId);
+
+        final Member savedMember = findMemberById(memberId);
+        final Resource savedResource = savedMember.getResource();
+        if (savedResource != null) {
+            savedResource.delete();
+        }
+
+        final Resource resource = new Resource("resourceKey", PROFILE_TYPE, "resourceUrl");
+        savedMember.updateProfile(resource);
+
+        return null;
     }
 
-    public void update(final String serviceToken, final MemberUpdateRequest request) {
+    public void init(final String serviceToken) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
         final Long memberId = userTokenResponse.memberId();
-        final Member savedMember = findMemberById(memberId);
-        savedMember.update(request.nickname(), request.phoneNumber());
-    }
 
-    public void delete(final String serviceToken) {
-        final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
-        final Long memberId = userTokenResponse.memberId();
         final Member savedMember = findMemberById(memberId);
-        savedMember.delete();
+        final Resource savedResource = savedMember.getResource();
+        if (savedResource == null) {
+            return;
+        }
+        savedMember.deleteProfile();
+        savedResource.delete();
     }
 
     private Member findMemberById(final Long memberId) {

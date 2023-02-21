@@ -28,7 +28,7 @@ public abstract class BaseEntity {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    public void delete() {
+    public void deleteEntity() {
         archived = false;
         archivedAt = LocalDateTime.now();
     }

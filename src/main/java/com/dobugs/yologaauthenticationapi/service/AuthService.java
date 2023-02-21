@@ -25,7 +25,7 @@ import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 @Service
 public class AuthService {
 
@@ -35,6 +35,7 @@ public class AuthService {
     private final TokenRepository tokenRepository;
     private final TokenGenerator tokenGenerator;
 
+    @Transactional(readOnly = true)
     public OAuthLinkResponse generateOAuthUrl(final OAuthRequest request) {
         final OAuthConnector oAuthConnector = selectConnector(request.provider());
         final String redirectUrl = decode(request.redirect_url());
@@ -44,7 +45,6 @@ public class AuthService {
         return new OAuthLinkResponse(oAuthUrl);
     }
 
-    @Transactional
     public OAuthTokenResponse login(final OAuthRequest request, final OAuthCodeRequest codeRequest) {
         final String provider = request.provider();
         final OAuthConnector oAuthConnector = selectConnector(provider);
@@ -60,7 +60,6 @@ public class AuthService {
         return new OAuthTokenResponse(serviceTokenResponse.accessToken(), serviceTokenResponse.refreshToken());
     }
 
-    @Transactional
     public OAuthTokenResponse reissue(final String serviceToken) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
         final OAuthConnector oAuthConnector = selectConnector(userTokenResponse.provider());
@@ -72,7 +71,6 @@ public class AuthService {
         return new OAuthTokenResponse(response.accessToken(), response.refreshToken());
     }
 
-    @Transactional
     public void logout(final String serviceToken) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
         final Long memberId = userTokenResponse.memberId();

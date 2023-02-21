@@ -75,4 +75,50 @@ class MemberTest {
                 .hasMessageContaining("올바른 전화번호 형식이 아닙니다.");
         }
     }
+
+    @DisplayName("사용자 삭제 테스트")
+    @Nested
+    public class delete {
+
+        @DisplayName("사용자를 삭제한다")
+        @Test
+        void success() {
+            final Member member = new Member("oauthId");
+
+            member.delete();
+
+            assertThat(member.isArchived()).isFalse();
+        }
+    }
+
+    @DisplayName("사용자 프로필 수정 테스트")
+    @Nested
+    public class updateProfile {
+
+        @DisplayName("사용자 프로필을 수정한다")
+        @Test
+        void success() {
+            final Member member = new Member("oauthId");
+            final Resource resource = new Resource("resourceKey", ResourceType.PROFILE, "resourceUrl");
+
+            member.updateProfile(resource);
+
+            assertThat(member.getResource()).isEqualTo(resource);
+        }
+    }
+
+    @DisplayName("사용자 프로필 삭제 테스트")
+    @Nested
+    public class deleteProfile {
+
+        @DisplayName("사용자 프로필을 삭제한다")
+        @Test
+        void success() {
+            final Member member = new Member("oauthId");
+
+            member.deleteProfile();
+
+            assertThat(member.getResource()).isNull();
+        }
+    }
 }
