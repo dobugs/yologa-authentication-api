@@ -13,13 +13,14 @@ import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
+@Transactional
 @Service
 public class MemberService {
 
     private final MemberRepository memberRepository;
     private final TokenGenerator tokenGenerator;
 
+    @Transactional(readOnly = true)
     public MemberResponse findById(final Long memberId) {
         final Member savedMember = findMemberById(memberId);
         return new MemberResponse(
@@ -31,13 +32,13 @@ public class MemberService {
         );
     }
 
+    @Transactional(readOnly = true)
     public MemberResponse findMe(final String serviceToken) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
         final Long memberId = userTokenResponse.memberId();
         return findById(memberId);
     }
 
-    @Transactional
     public void update(final String serviceToken, final MemberUpdateRequest request) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
         final Long memberId = userTokenResponse.memberId();
@@ -45,7 +46,6 @@ public class MemberService {
         savedMember.update(request.nickname(), request.phoneNumber());
     }
 
-    @Transactional
     public void delete(final String serviceToken) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
         final Long memberId = userTokenResponse.memberId();
