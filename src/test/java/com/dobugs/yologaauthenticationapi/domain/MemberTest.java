@@ -91,6 +91,22 @@ class MemberTest {
         }
     }
 
+    @DisplayName("사용자 프로필 수정 테스트")
+    @Nested
+    public class updateProfile {
+
+        @DisplayName("사용자 프로필을 수정한다")
+        @Test
+        void success() {
+            final Member member = new Member("oauthId");
+            final Resource resource = new Resource("resourceKey", ResourceType.PROFILE, "resourceUrl");
+
+            member.updateProfile(resource);
+
+            assertThat(member.getResource()).isEqualTo(resource);
+        }
+    }
+
     @DisplayName("사용자 프로필 삭제 테스트")
     @Nested
     public class deleteProfile {

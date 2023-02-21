@@ -59,6 +59,10 @@ public class Member extends BaseEntity {
         deleteEntity();
     }
 
+    public void updateProfile(final Resource resource) {
+        this.resource = resource;
+    }
+
     public void deleteProfile() {
         this.resource = null;
     }
