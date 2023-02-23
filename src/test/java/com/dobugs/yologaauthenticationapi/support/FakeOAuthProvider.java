@@ -1,4 +1,4 @@
-package com.dobugs.yologaauthenticationapi.service;
+package com.dobugs.yologaauthenticationapi.support;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,9 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
 
-import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
-
-public class FakeProvider implements OAuthProvider {
+public class FakeOAuthProvider implements OAuthProvider {
 
     private static final String CLIENT_ID = "clientId";
     private static final String CLIENT_SECRET = "clientSecret";
