@@ -27,6 +27,22 @@ class MemberTest {
         }
     }
 
+    @DisplayName("사용자 재가입 테스트")
+    @Nested
+    public class rejoin {
+
+        @DisplayName("사용자 정보를 재가입시킨다")
+        @Test
+        void success() {
+            final Member member = new Member("oauthId");
+            member.delete();
+
+            member.rejoin();
+
+            assertThat(member.isArchived()).isTrue();
+        }
+    }
+
     @DisplayName("사용자 수정 테스트")
     @Nested
     public class update {

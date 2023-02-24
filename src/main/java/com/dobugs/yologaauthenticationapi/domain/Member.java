@@ -2,6 +2,7 @@ package com.dobugs.yologaauthenticationapi.domain;
 
 import java.util.regex.Pattern;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -36,7 +37,7 @@ public class Member extends BaseEntity {
     @Column(length = PHONE_NUMBER_LENGTH)
     private String phoneNumber;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "resource_id")
     private Resource resource;
 
@@ -46,6 +47,10 @@ public class Member extends BaseEntity {
 
     public void init() {
         nickname = INITIAL_NICKNAME_PREFIX + id;
+    }
+
+    public void rejoin() {
+        saveEntity();
     }
 
     public void update(final String nickname, final String phoneNumber) {

@@ -27,6 +27,7 @@ import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.FakeOAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenResponse;
@@ -52,11 +53,9 @@ class AuthServiceTest {
     @Mock
     private TokenGenerator tokenGenerator;
 
-    private OAuthConnector connector;
-
     @BeforeEach
     void setUp() {
-        connector = new FakeConnector();
+        final OAuthConnector connector = new FakeOAuthConnector();
         authService = new AuthService(connector, connector, memberRepository, tokenRepository, tokenGenerator);
     }
 
@@ -158,6 +157,7 @@ class AuthServiceTest {
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(memberId, provider, refreshToken));
             given(tokenRepository.exist(memberId)).willReturn(true);
             given(tokenRepository.existRefreshToken(memberId, refreshToken)).willReturn(true);
+            given(tokenGenerator.create(eq(memberId), eq(provider), any())).willReturn(new ServiceTokenResponse("accessToken", "refreshToken"));
 
             assertThatCode(() -> authService.reissue(serviceToken))
                 .doesNotThrowAnyException();

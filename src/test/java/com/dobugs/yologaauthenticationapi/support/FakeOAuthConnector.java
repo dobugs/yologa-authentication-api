@@ -1,13 +1,11 @@
-package com.dobugs.yologaauthenticationapi.service;
+package com.dobugs.yologaauthenticationapi.support;
 
-import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
-import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
 import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserResponse;
 
-public class FakeConnector implements OAuthConnector {
+public class FakeOAuthConnector implements OAuthConnector {
 
-    private final OAuthProvider provider = new FakeProvider();
+    private final OAuthProvider provider = new FakeOAuthProvider();
 
     @Override
     public String generateOAuthUrl(final String redirectUrl, final String referrer) {

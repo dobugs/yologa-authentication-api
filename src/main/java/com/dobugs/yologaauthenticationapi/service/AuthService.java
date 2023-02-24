@@ -68,7 +68,8 @@ public class AuthService {
         validateTheExistenceOfRefreshToken(userTokenResponse.memberId(), refreshToken);
         final TokenResponse response = oAuthConnector.requestAccessToken(refreshToken);
         restoreRefreshToken(userTokenResponse.memberId(), response.refreshToken());
-        return new OAuthTokenResponse(response.accessToken(), response.refreshToken());
+        final ServiceTokenResponse serviceTokenResponse = tokenGenerator.create(userTokenResponse.memberId(), userTokenResponse.provider(), response);
+        return new OAuthTokenResponse(serviceTokenResponse.accessToken(), serviceTokenResponse.refreshToken());
     }
 
     public void logout(final String serviceToken) {
@@ -80,6 +81,12 @@ public class AuthService {
     }
 
     private Long saveMember(final String provider, final TokenResponse tokenResponse, final UserResponse userResponse) {
+        final Member savedMember = saveMemberToMySQL(userResponse);
+        saveMemberToRedis(provider, tokenResponse, savedMember);
+        return savedMember.getId();
+    }
+
+    private Member saveMemberToMySQL(final UserResponse userResponse) {
         final Member savedMember = memberRepository.findByOauthId(userResponse.oAuthId())
             .orElseGet(() -> {
                 final Member member = new Member(userResponse.oAuthId());
@@ -87,14 +94,18 @@ public class AuthService {
                 member.init();
                 return member;
             });
+        if (!savedMember.isArchived()) {
+            savedMember.rejoin();
+        }
+        return savedMember;
+    }
 
+    private void saveMemberToRedis(final String provider, final TokenResponse tokenResponse, final Member savedMember) {
         final OAuthToken oAuthToken = OAuthToken.login(
             savedMember.getId(), Provider.findOf(provider),
             tokenResponse.refreshToken(), (long) tokenResponse.refreshTokenExpiresIn()
         );
         tokenRepository.save(oAuthToken);
-
-        return savedMember.getId();
     }
 
     private void restoreRefreshToken(final Long memberId, final String refreshToken) {
