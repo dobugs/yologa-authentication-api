@@ -9,6 +9,7 @@ import com.dobugs.yologaauthenticationapi.domain.Resource;
 import com.dobugs.yologaauthenticationapi.domain.ResourceType;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.support.StorageConnector;
+import com.dobugs.yologaauthenticationapi.support.StorageGenerator;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ResourceResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
@@ -25,6 +26,7 @@ public class ProfileService {
     private final MemberRepository memberRepository;
     private final TokenGenerator tokenGenerator;
     private final StorageConnector s3Connector;
+    private final StorageGenerator s3Generator;
 
     public String update(final String serviceToken, final MultipartFile newProfile) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
@@ -37,7 +39,7 @@ public class ProfileService {
             s3Connector.delete(savedResource.getResourceKey());
         }
 
-        final ResourceResponse response = s3Connector.save(newProfile, "/", "profile.png");
+        final ResourceResponse response = s3Connector.save(newProfile, s3Generator.createPath(), s3Generator.createResourceName(newProfile));
         final Resource resource = new Resource(response.resourceKey(), PROFILE_TYPE, response.resourceUrl());
         savedMember.updateProfile(resource);
         return response.resourceUrl();

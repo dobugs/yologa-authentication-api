@@ -24,6 +24,7 @@ import com.dobugs.yologaauthenticationapi.domain.Resource;
 import com.dobugs.yologaauthenticationapi.domain.ResourceType;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.support.FakeStorageConnector;
+import com.dobugs.yologaauthenticationapi.support.FakeStorageGenerator;
 import com.dobugs.yologaauthenticationapi.support.StorageConnector;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
@@ -51,7 +52,7 @@ class ProfileServiceTest {
     @BeforeEach
     void setUp() {
         fakeS3Connector = new FakeStorageConnector();
-        profileService = new ProfileService(memberRepository, tokenGenerator, fakeS3Connector);
+        profileService = new ProfileService(memberRepository, tokenGenerator, fakeS3Connector, new FakeStorageGenerator());
     }
 
     private String createToken(final Long memberId, final String provider, final String token) {
