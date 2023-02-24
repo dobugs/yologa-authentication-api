@@ -8,5 +8,5 @@ public interface StorageConnector {
 
     ResourceResponse save(MultipartFile resource, String path, String resourceName);
 
-    void delete(String resourceUrl);
+    void delete(String resourceKey);
 }
