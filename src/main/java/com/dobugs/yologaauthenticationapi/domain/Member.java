@@ -49,6 +49,10 @@ public class Member extends BaseEntity {
         nickname = INITIAL_NICKNAME_PREFIX + id;
     }
 
+    public void rejoin() {
+        saveEntity();
+    }
+
     public void update(final String nickname, final String phoneNumber) {
         validateNickname(nickname);
         validatePhoneNumber(phoneNumber);

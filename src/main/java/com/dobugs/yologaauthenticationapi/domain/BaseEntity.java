@@ -28,6 +28,10 @@ public abstract class BaseEntity {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    public void saveEntity() {
+        archived = true;
+    }
+
     public void deleteEntity() {
         archived = false;
         archivedAt = LocalDateTime.now();
