@@ -68,7 +68,8 @@ public class AuthService {
         validateTheExistenceOfRefreshToken(userTokenResponse.memberId(), refreshToken);
         final TokenResponse response = oAuthConnector.requestAccessToken(refreshToken);
         restoreRefreshToken(userTokenResponse.memberId(), response.refreshToken());
-        return new OAuthTokenResponse(response.accessToken(), response.refreshToken());
+        final ServiceTokenResponse serviceTokenResponse = tokenGenerator.create(userTokenResponse.memberId(), userTokenResponse.provider(), response);
+        return new OAuthTokenResponse(serviceTokenResponse.accessToken(), serviceTokenResponse.refreshToken());
     }
 
     public void logout(final String serviceToken) {

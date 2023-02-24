@@ -38,14 +38,15 @@ public class TokenGenerator {
 
     public ServiceTokenResponse create(final Long memberId, final String provider, final TokenResponse tokenResponse) {
         final Date now = new Date();
-        final String accessToken = createToken(memberId, provider, tokenResponse.accessToken(), now, new Date(now.getTime() + tokenResponse.expiresIn()));
+        final String accessToken = createToken(memberId, provider, tokenResponse.accessToken(), now, new Date(now.getTime() + tokenResponse.expiresIn() * 1000L));
         final String refreshToken = createToken(memberId, provider, tokenResponse.refreshToken(), now, extractRefreshTokenExpiration(tokenResponse, now));
 
         return new ServiceTokenResponse(accessToken, refreshToken);
     }
 
     public UserTokenResponse extract(final String serviceToken) {
-        final Claims claims = extractClaims(serviceToken);
+        final String jwt = serviceToken.replace("Bearer ", "");
+        final Claims claims = extractClaims(jwt);
         final Long memberId = extractMemberId(claims);
         final String token = extractToken(claims);
         final String provider = extractProvider(claims);
@@ -53,7 +54,7 @@ public class TokenGenerator {
     }
 
     private Date extractRefreshTokenExpiration(final TokenResponse tokenResponse, final Date now) {
-        final int expiresIn = tokenResponse.refreshTokenExpiresIn();
+        final long expiresIn = tokenResponse.refreshTokenExpiresIn() * 1000L;
         if (expiresIn < 0) {
             return new Date(now.getTime() + defaultRefreshTokenExpiresIn);
         }
