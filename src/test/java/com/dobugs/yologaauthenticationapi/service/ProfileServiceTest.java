@@ -69,11 +69,16 @@ class ProfileServiceTest {
 
         private static final String RESOURCE_NAME = "profile.png";
 
+        final MockMultipartFile newProfile = new MockMultipartFile(
+            "profile",
+            "최종_최종_최종_프로필.png",
+            MediaType.IMAGE_PNG_VALUE,
+            "new profile content".getBytes()
+        );
+
         @DisplayName("프로필을 수정한다")
         @Test
         void success() {
-            final MultipartFile newProfile = mock(MultipartFile.class);
-
             final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
 
@@ -91,8 +96,6 @@ class ProfileServiceTest {
         @DisplayName("기존에 프로필이 없었더라도 프로필 수정에 성공한다")
         @Test
         void profileIsNull() {
-            final MultipartFile newProfile = mock(MultipartFile.class);
-
             final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
 
@@ -125,8 +128,6 @@ class ProfileServiceTest {
         @DisplayName("존재하지 않는 사용자의 프로필을 수정하면 예외가 발생한다")
         @Test
         void memberIsNotExist() {
-            final MultipartFile newProfile = mock(MultipartFile.class);
-
             final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
             given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.empty());

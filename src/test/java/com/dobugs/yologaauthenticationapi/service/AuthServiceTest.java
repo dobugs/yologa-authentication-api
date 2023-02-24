@@ -157,6 +157,7 @@ class AuthServiceTest {
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(memberId, provider, refreshToken));
             given(tokenRepository.exist(memberId)).willReturn(true);
             given(tokenRepository.existRefreshToken(memberId, refreshToken)).willReturn(true);
+            given(tokenGenerator.create(eq(memberId), eq(provider), any())).willReturn(new ServiceTokenResponse("accessToken", "refreshToken"));
 
             assertThatCode(() -> authService.reissue(serviceToken))
                 .doesNotThrowAnyException();
