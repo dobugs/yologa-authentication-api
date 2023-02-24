@@ -3,6 +3,8 @@ package com.dobugs.yologaauthenticationapi.support.resource;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
@@ -14,6 +16,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
@@ -30,10 +34,6 @@ import io.awspring.cloud.s3.S3Template;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("S3Connector 테스트")
 class S3ConnectorTest {
-
-    private static final String PROTOCOL = "http";
-    private static final String HOST = "localhost";
-    private static final int PORT = 8080;
 
     private StorageConnector s3Connector;
 
@@ -52,10 +52,6 @@ class S3ConnectorTest {
     @Nested
     public class save {
 
-        private static final String PATH = "/";
-        private static final String RESOURCE_NAME = "profile.png";
-        private static final String RESOURCE_KEY = PATH + RESOURCE_NAME;
-
         private final MockMultipartFile resource = new MockMultipartFile(
             "profile",
             "최종_최종_최종_프로필.png",
@@ -66,16 +62,63 @@ class S3ConnectorTest {
         @DisplayName("리소스를 저장한다")
         @Test
         void success() throws IOException {
-            final S3Resource s3Resource = mock(S3Resource.class);
-            given(s3Resource.getURL()).willReturn(new URL(PROTOCOL, HOST, PORT, RESOURCE_KEY));
-            given(s3Template.store(fakeStorageProvider.bucket(), RESOURCE_KEY, resource)).willReturn(s3Resource);
+            final String path = "/";
+            final String resourceName = "profile.png";
 
-            final ResourceResponse response = s3Connector.save(resource, PATH, RESOURCE_NAME);
+            final S3Resource s3Resource = mock(S3Resource.class);
+            given(s3Resource.getURL()).willReturn(new URL("http", "localhost", 8080, resourceName));
+            given(s3Template.store(eq(fakeStorageProvider.bucket()), eq(resourceName), any())).willReturn(s3Resource);
+
+            final ResourceResponse response = s3Connector.save(resource, path, resourceName);
 
             assertAll(
-                () -> assertThat(response.resourceKey()).isEqualTo(RESOURCE_KEY),
-                () -> assertThat(response.resourceUrl()).isEqualTo(PROTOCOL + "://" + HOST + ":" + PORT + RESOURCE_KEY)
+                () -> assertThat(response.resourceKey()).isEqualTo(resourceName),
+                () -> assertThat(response.resourceUrl()).contains(resourceName)
             );
+        }
+
+        @DisplayName("리소스 키 설정 테스트")
+        @Nested
+        public class concatResourceKey {
+
+            private static final String RESOURCE_NAME = "profile.png";
+            private static final String DIRECTORY_NAME = "path";
+
+            private StorageConnector s3Connector;
+
+            @BeforeEach
+            void setUp() throws IOException {
+                final S3Resource s3Resource = mock(S3Resource.class);
+                final S3Template s3Template = mock(S3Template.class);
+                given(s3Resource.getURL()).willReturn(new URL("https", "host", 1234, "file"));
+                given(s3Template.store(any(), any(), any())).willReturn(s3Resource);
+
+                s3Connector = new S3Connector(s3Template, new FakeStorageProvider());
+            }
+
+            @DisplayName("리소스를 루트 위치에 저장하면 리소스 키는 '리소스 이름' 이다")
+            @ParameterizedTest
+            @ValueSource(strings = {"", "/"})
+            void pathIsEmpty(final String path) {
+                final ResourceResponse response = s3Connector.save(resource, path, RESOURCE_NAME);
+
+                assertThat(response.resourceKey()).isEqualTo(RESOURCE_NAME);
+            }
+
+            @DisplayName("리소스를 폴더에 저장하면 리소스 키는 '폴더/리소스이름' 이다")
+            @ParameterizedTest
+            @ValueSource(strings = {
+                "path", "/path", "path/", "/path/",
+                "path/path", "/path/path", "path/path/", "/path/path/"
+            })
+            void pathIsPresent(final String path) {
+                final ResourceResponse response = s3Connector.save(resource, path, RESOURCE_NAME);
+
+                assertAll(
+                    () -> assertThat(response.resourceKey()).doesNotStartWith("/"),
+                    () -> assertThat(response.resourceKey()).contains(DIRECTORY_NAME + "/" + RESOURCE_NAME)
+                );
+            }
         }
     }
 
@@ -86,7 +129,9 @@ class S3ConnectorTest {
         @DisplayName("리소스를 삭제한다")
         @Test
         void success() {
-            assertThatCode(() -> s3Connector.delete("resourceUrl"))
+            final String resourceKey = "profile.png";
+
+            assertThatCode(() -> s3Connector.delete(resourceKey))
                 .doesNotThrowAnyException();
         }
     }
