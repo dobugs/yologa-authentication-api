@@ -104,6 +104,24 @@ class ProfileServiceTest {
             assertThat(member.getResource()).isNotNull();
         }
 
+        @DisplayName("이미지 파일이 아닐 경우 예외가 발생한다")
+        @Test
+        void fileIsNotImage() {
+            final MockMultipartFile newProfile = new MockMultipartFile(
+                "profile",
+                "최종_최종_최종_프로필.png",
+                MediaType.APPLICATION_JSON_VALUE,
+                "new profile content".getBytes()
+            );
+
+            final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+
+            assertThatThrownBy(() -> profileService.update(serviceToken, newProfile))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("프로필은 PNG, JPG 형식만 가능합니다.");
+        }
+
         @DisplayName("존재하지 않는 사용자의 프로필을 수정하면 예외가 발생한다")
         @Test
         void memberIsNotExist() {

@@ -1,5 +1,8 @@
 package com.dobugs.yologaauthenticationapi.service;
 
+import java.util.List;
+
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 public class ProfileService {
 
     private static final ResourceType PROFILE_TYPE = ResourceType.PROFILE;
+    private static final List<String> CONTENT_TYPES_OF_IMAGE = List.of(MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE);
 
     private final MemberRepository memberRepository;
     private final TokenGenerator tokenGenerator;
@@ -31,6 +35,7 @@ public class ProfileService {
     public String update(final String serviceToken, final MultipartFile newProfile) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
         final Long memberId = userTokenResponse.memberId();
+        validateProfileIsImage(newProfile);
 
         final Member savedMember = findMemberById(memberId);
         final Resource savedResource = savedMember.getResource();
@@ -57,6 +62,13 @@ public class ProfileService {
         savedMember.deleteProfile();
         savedResource.delete();
         s3Connector.delete(savedResource.getResourceKey());
+    }
+
+    private void validateProfileIsImage(final MultipartFile file) {
+        final String contentType = file.getContentType();
+        if (!CONTENT_TYPES_OF_IMAGE.contains(contentType)) {
+            throw new IllegalArgumentException(String.format("프로필은 PNG, JPG 형식만 가능합니다. [%s]", contentType));
+        }
     }
 
     private Member findMemberById(final Long memberId) {
