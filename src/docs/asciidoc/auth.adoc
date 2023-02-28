@@ -28,3 +28,34 @@ Request
 include::{snippets}/auth/logout/http-request.adoc[]
 Response
 include::{snippets}/auth/logout/http-response.adoc[]
+
+== 예외처리
+=== OAuth
+|===
+| | 상태코드 | 비고
+
+| 외부 서버 연결 실패
+| 500
+|
+|===
+
+=== Token
+|===
+| | 상태코드 | 비고
+
+| 잘못된 형식의 JWT
+| 401
+| JWT 형식이 아닌 경우
+
+| 지원하지 않는 JWT
+| 401
+| 서명이 안되어 있는 경우
+
+| 다른 서버의 JWT
+| 401
+| 서명이 다른 경우
+
+| 토큰 만료
+| 401
+| 토큰의 만료 기한이 지난 경우
+|===

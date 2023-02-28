@@ -40,3 +40,17 @@ Request
 include::{snippets}/profile/init/http-request.adoc[]
 Response
 include::{snippets}/profile/init/http-response.adoc[]
+
+== 예외처리
+=== 이미지
+|===
+| | 상태코드 | 비고
+
+| S3 연결 과정에서 문제 발생
+| 500
+| 두벅스 서버에서 S3 에 연결하기 위한 조건 불충분 (ex. 권한 없음 등)
+
+| S3 연결 시 문제 발생
+| 500
+| S3 내부에서 문제 발생
+|===
