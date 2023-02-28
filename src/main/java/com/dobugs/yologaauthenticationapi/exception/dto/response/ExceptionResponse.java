@@ -13,4 +13,9 @@ public class ExceptionResponse {
     public static ExceptionResponse from(final String message) {
         return new ExceptionResponse(message);
     }
+
+    public static ExceptionResponse from(final String customMessage, final String originMessage) {
+        final String message = String.format("%s : %s", customMessage, originMessage);
+        return new ExceptionResponse(message);
+    }
 }

@@ -86,14 +86,10 @@ public class TokenGenerator {
     }
 
     private Claims extractClaims(final String serviceToken) {
-        try {
-            return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(serviceToken)
-                .getBody();
-        } catch (ExpiredJwtException e) {
-            throw new IllegalArgumentException("토큰의 만료 시간이 지났습니다.");
-        }
+        return Jwts.parserBuilder()
+            .setSigningKey(secretKey)
+            .build()
+            .parseClaimsJws(serviceToken)
+            .getBody();
     }
 }
