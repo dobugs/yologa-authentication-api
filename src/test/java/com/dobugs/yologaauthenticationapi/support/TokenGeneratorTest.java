@@ -19,9 +19,13 @@ import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 
 class TokenGeneratorTest {
 
@@ -100,7 +104,7 @@ class TokenGeneratorTest {
         private static final long MEMBER_ID = 0L;
         private static final String PROVIDER = Provider.GOOGLE.getName();
         private static final String ACCESS_TOKEN = "accessToken";
-        private static final Date EXPIRATION = new Date(new Date().getTime() + 1000);
+        private static final Date EXPIRATION = new Date(new Date().getTime() + 10_000);
 
         @DisplayName("token 을 추출한다")
         @Test
@@ -116,15 +120,53 @@ class TokenGeneratorTest {
             );
         }
 
-        @DisplayName("만료 시간이 지난 token 일 경우 예외가 발생한다")
+        @DisplayName("잘못된 형식의 JWT 일 경우 예외가 발생한다")
         @Test
-        void fail() {
+        void JWTIsMalformed() {
+            final String serviceToken = "malformedToken";
+
+            assertThatThrownBy(() -> tokenGenerator.extract(serviceToken))
+                .isInstanceOf(MalformedJwtException.class);
+        }
+
+        @DisplayName("지원하지 않는 JWT 일 경우 예외가 발생한다")
+        @Test
+        void JWTIsUnsupported() {
+            final String serviceToken = Jwts.builder()
+                .claim("memberId", MEMBER_ID)
+                .claim("provider", PROVIDER)
+                .claim("token", ACCESS_TOKEN)
+                .setExpiration(EXPIRATION)
+                .compact();
+
+            assertThatThrownBy(() -> tokenGenerator.extract(serviceToken))
+                .isInstanceOf(UnsupportedJwtException.class);
+        }
+
+        @DisplayName("서명이 다른 JWT 일 경우 예외가 발생한다")
+        @Test
+        void signatureIsDifferent() {
+            final SecretKey differentSecretKey = Keys.hmacShaKeyFor("differentKey".repeat(10).getBytes(StandardCharsets.UTF_8));
+            final String serviceToken = Jwts.builder()
+                .claim("memberId", MEMBER_ID)
+                .claim("provider", PROVIDER)
+                .claim("token", ACCESS_TOKEN)
+                .setExpiration(EXPIRATION)
+                .signWith(differentSecretKey, SignatureAlgorithm.HS256)
+                .compact();
+
+            assertThatThrownBy(() -> tokenGenerator.extract(serviceToken))
+                .isInstanceOf(SignatureException.class);
+        }
+
+        @DisplayName("만료 시간이 지난 JWT 일 경우 예외가 발생한다")
+        @Test
+        void JWTIsExpired() {
             final Date expiration = new Date(new Date().getTime() - 1);
             final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN, expiration);
 
             assertThatThrownBy(() -> tokenGenerator.extract(serviceToken))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("토큰의 만료 시간이 지났습니다.");
+                .isInstanceOf(ExpiredJwtException.class);
         }
 
         private String createToken(final Long memberId, final String provider, final String token, final Date expiration) {
