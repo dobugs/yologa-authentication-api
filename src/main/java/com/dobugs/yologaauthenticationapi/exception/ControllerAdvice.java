@@ -66,13 +66,15 @@ public class ControllerAdvice {
 
     @ExceptionHandler({AwsServiceException.class, S3Exception.class})
     public ResponseEntity<ExceptionResponse> handleSdkServiceException(AwsServiceException e) {
-        final ExceptionResponse response = ExceptionResponse.from(e.getMessage());
+        final String message = "S3 에 연결하기 위한 과정에서 문제가 발생하였습니다.";
+        final ExceptionResponse response = ExceptionResponse.from(message, e.getMessage());
         return ResponseEntity.internalServerError().body(response);
     }
 
     @ExceptionHandler(SdkClientException.class)
     public ResponseEntity<ExceptionResponse> handleSdkClientException(SdkClientException e) {
-        final ExceptionResponse response = ExceptionResponse.from(e.getMessage());
+        final String message = "S3 와의 연결에서 문제가 발생하였습니다.";
+        final ExceptionResponse response = ExceptionResponse.from(message, e.getMessage());
         return ResponseEntity.internalServerError().body(response);
     }
 }
