@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.dobugs.yologaauthenticationapi.exception.dto.response.ExceptionResponse;
+import com.dobugs.yologaauthenticationapi.support.exception.OAuthException;
 
 import io.awspring.cloud.s3.S3Exception;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -55,6 +56,12 @@ public class ControllerAdvice {
         final String message = "토큰의 만료 시간이 지났습니다.";
         final ExceptionResponse response = ExceptionResponse.from(message, e.getMessage());
         return ResponseEntity.status(UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(OAuthException.class)
+    public ResponseEntity<ExceptionResponse> handleOAuthException(OAuthException e) {
+        final ExceptionResponse response = ExceptionResponse.from(e.getMessage());
+        return ResponseEntity.internalServerError().body(response);
     }
 
     @ExceptionHandler({AwsServiceException.class, S3Exception.class})

@@ -13,6 +13,7 @@ import com.dobugs.yologaauthenticationapi.support.dto.response.KakaoTokenRespons
 import com.dobugs.yologaauthenticationapi.support.dto.response.KakaoUserResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserResponse;
+import com.dobugs.yologaauthenticationapi.support.exception.OAuthConnectionException;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -58,7 +59,7 @@ public class KakaoConnector implements OAuthConnector {
         );
         validateConnectionResponseIsSuccess(response);
         return Optional.ofNullable(response.getBody())
-            .orElseThrow(() -> new IllegalArgumentException("kakao 와의 연결에 실패하였습니다."));
+            .orElseThrow(() -> new OAuthConnectionException("kakao 와의 연결에 실패하였습니다."));
     }
 
     private KakaoUserResponse connectForUserInfo(final String tokenType, final String accessToken) {
@@ -70,7 +71,7 @@ public class KakaoConnector implements OAuthConnector {
         );
         validateConnectionResponseIsSuccess(response);
         return Optional.ofNullable(response.getBody())
-            .orElseThrow(() -> new IllegalArgumentException("kakao 의 사용자 정보를 가져오는 과정에서 연결에 실패하였습니다."));
+            .orElseThrow(() -> new OAuthConnectionException("kakao 의 사용자 정보를 가져오는 과정에서 연결에 실패하였습니다."));
     }
 
     private KakaoTokenResponse connectForAccessToken(final String refreshToken) {
@@ -81,7 +82,7 @@ public class KakaoConnector implements OAuthConnector {
         );
         validateConnectionResponseIsSuccess(response);
         return Optional.ofNullable(response.getBody())
-            .orElseThrow(() -> new IllegalArgumentException("kakao 에서 Access Token 을 재발급 받는 과정에서 연결에 실패하였습니다."));
+            .orElseThrow(() -> new OAuthConnectionException("kakao 에서 Access Token 을 재발급 받는 과정에서 연결에 실패하였습니다."));
     }
 
     private String selectRefreshToken(final String refreshToken, final KakaoTokenResponse response) {
@@ -94,7 +95,7 @@ public class KakaoConnector implements OAuthConnector {
     private void validateConnectionResponseIsSuccess(final ResponseEntity<?> response) {
         final HttpStatusCode statusCode = response.getStatusCode();
         if (!statusCode.is2xxSuccessful()) {
-            throw new IllegalArgumentException(String.format("kakao 와의 연결에 실패하였습니다. [%s]", statusCode));
+            throw new OAuthConnectionException(String.format("kakao 와의 연결에 실패하였습니다. [%s]", statusCode));
         }
     }
 }
