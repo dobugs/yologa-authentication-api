@@ -67,7 +67,7 @@ class S3ConnectorTest {
 
             final S3Resource s3Resource = mock(S3Resource.class);
             given(s3Resource.getURL()).willReturn(new URL("http", "localhost", 8080, resourceName));
-            given(s3Template.store(eq(fakeStorageProvider.bucket()), eq(resourceName), any())).willReturn(s3Resource);
+            given(s3Template.upload(eq(fakeStorageProvider.bucket()), eq(resourceName), any())).willReturn(s3Resource);
 
             final ResourceResponse response = s3Connector.save(resource, path, resourceName);
 
@@ -91,7 +91,7 @@ class S3ConnectorTest {
                 final S3Resource s3Resource = mock(S3Resource.class);
                 final S3Template s3Template = mock(S3Template.class);
                 given(s3Resource.getURL()).willReturn(new URL("https", "host", 1234, "file"));
-                given(s3Template.store(any(), any(), any())).willReturn(s3Resource);
+                given(s3Template.upload(any(), any(), any())).willReturn(s3Resource);
 
                 s3Connector = new S3Connector(s3Template, new FakeStorageProvider());
             }
