@@ -13,7 +13,7 @@ import com.dobugs.yologaauthenticationapi.service.AuthService;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
-import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
+import com.dobugs.yologaauthenticationapi.service.dto.response.ServiceTokenResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,17 +31,17 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<OAuthTokenResponse> login(
+    public ResponseEntity<ServiceTokenResponse> login(
         @ModelAttribute final OAuthRequest request,
         @RequestBody final OAuthCodeRequest codeRequest
     ) {
-        final OAuthTokenResponse response = authService.login(request, codeRequest);
+        final ServiceTokenResponse response = authService.login(request, codeRequest);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/reissue")
-    public ResponseEntity<OAuthTokenResponse> reissue(@RequestHeader("Authorization") final String refreshToken) {
-        final OAuthTokenResponse response = authService.reissue(refreshToken);
+    public ResponseEntity<ServiceTokenResponse> reissue(@RequestHeader("Authorization") final String refreshToken) {
+        final ServiceTokenResponse response = authService.reissue(refreshToken);
         return ResponseEntity.ok(response);
     }
 

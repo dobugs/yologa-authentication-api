@@ -14,12 +14,13 @@ import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
-import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
+import com.dobugs.yologaauthenticationapi.service.dto.response.ServiceTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
-import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenResponse;
-import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
-import com.dobugs.yologaauthenticationapi.support.dto.response.UserResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenDto;
+import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthUserResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -45,31 +46,33 @@ public class AuthService {
         return new OAuthLinkResponse(oAuthUrl);
     }
 
-    public OAuthTokenResponse login(final OAuthRequest request, final OAuthCodeRequest codeRequest) {
+    public ServiceTokenResponse login(final OAuthRequest request, final OAuthCodeRequest codeRequest) {
         final String provider = request.provider();
         final OAuthConnector oAuthConnector = selectConnector(provider);
         final String redirectUrl = decode(request.redirect_url());
         final String authorizationCode = decode(codeRequest.authorizationCode());
 
-        final TokenResponse tokenResponse = oAuthConnector.requestToken(authorizationCode, redirectUrl);
-        final UserResponse userResponse = oAuthConnector.requestUserInfo(tokenResponse.tokenType(), tokenResponse.accessToken());
+        final OAuthTokenResponse oAuthTokenResponse = oAuthConnector.requestToken(authorizationCode, redirectUrl);
+        final OAuthUserResponse oAuthUserResponse = oAuthConnector.requestUserInfo(oAuthTokenResponse.tokenType(), oAuthTokenResponse.accessToken());
 
-        final Long memberId = saveMember(provider, tokenResponse, userResponse);
-        final ServiceTokenResponse serviceTokenResponse = tokenGenerator.create(memberId, provider, tokenResponse);
+        final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(oAuthTokenResponse);
+        final Long memberId = saveMember(provider, oAuthTokenDto, oAuthUserResponse);
+        final ServiceTokenDto serviceTokenDto = tokenGenerator.create(memberId, provider, oAuthTokenDto);
 
-        return new OAuthTokenResponse(serviceTokenResponse.accessToken(), serviceTokenResponse.refreshToken());
+        return new ServiceTokenResponse(serviceTokenDto.accessToken(), serviceTokenDto.refreshToken());
     }
 
-    public OAuthTokenResponse reissue(final String serviceToken) {
+    public ServiceTokenResponse reissue(final String serviceToken) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
         final OAuthConnector oAuthConnector = selectConnector(userTokenResponse.provider());
         final String refreshToken = decode(userTokenResponse.token());
 
         validateTheExistenceOfRefreshToken(userTokenResponse.memberId(), refreshToken);
-        final TokenResponse response = oAuthConnector.requestAccessToken(refreshToken);
-        restoreRefreshToken(userTokenResponse.memberId(), response.refreshToken());
-        final ServiceTokenResponse serviceTokenResponse = tokenGenerator.create(userTokenResponse.memberId(), userTokenResponse.provider(), response);
-        return new OAuthTokenResponse(serviceTokenResponse.accessToken(), serviceTokenResponse.refreshToken());
+        final OAuthTokenResponse response = oAuthConnector.requestAccessToken(refreshToken);
+        final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(response);
+        restoreRefreshToken(userTokenResponse.memberId(), oAuthTokenDto.refreshToken());
+        final ServiceTokenDto serviceTokenDto = tokenGenerator.create(userTokenResponse.memberId(), userTokenResponse.provider(), oAuthTokenDto);
+        return new ServiceTokenResponse(serviceTokenDto.accessToken(), serviceTokenDto.refreshToken());
     }
 
     public void logout(final String serviceToken) {
@@ -80,16 +83,16 @@ public class AuthService {
         tokenRepository.delete(memberId);
     }
 
-    private Long saveMember(final String provider, final TokenResponse tokenResponse, final UserResponse userResponse) {
-        final Member savedMember = saveMemberToMySQL(userResponse);
-        saveMemberToRedis(provider, tokenResponse, savedMember);
+    private Long saveMember(final String provider, final OAuthTokenDto oAuthTokenDto, final OAuthUserResponse OAuthUserResponse) {
+        final Member savedMember = saveMemberToMySQL(OAuthUserResponse);
+        saveMemberToRedis(provider, oAuthTokenDto, savedMember);
         return savedMember.getId();
     }
 
-    private Member saveMemberToMySQL(final UserResponse userResponse) {
-        final Member savedMember = memberRepository.findByOauthId(userResponse.oAuthId())
+    private Member saveMemberToMySQL(final OAuthUserResponse OAuthUserResponse) {
+        final Member savedMember = memberRepository.findByOauthId(OAuthUserResponse.oAuthId())
             .orElseGet(() -> {
-                final Member member = new Member(userResponse.oAuthId());
+                final Member member = new Member(OAuthUserResponse.oAuthId());
                 memberRepository.save(member);
                 member.init();
                 return member;
@@ -100,10 +103,10 @@ public class AuthService {
         return savedMember;
     }
 
-    private void saveMemberToRedis(final String provider, final TokenResponse tokenResponse, final Member savedMember) {
+    private void saveMemberToRedis(final String provider, final OAuthTokenDto oAuthTokenDto, final Member savedMember) {
         final OAuthToken oAuthToken = OAuthToken.login(
             savedMember.getId(), Provider.findOf(provider),
-            tokenResponse.refreshToken(), (long) tokenResponse.refreshTokenExpiresIn()
+            oAuthTokenDto.refreshToken(), (long) oAuthTokenDto.refreshTokenExpiresIn()
         );
         tokenRepository.save(oAuthToken);
     }

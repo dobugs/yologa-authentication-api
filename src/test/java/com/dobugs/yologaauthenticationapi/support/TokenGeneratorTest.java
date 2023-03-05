@@ -15,8 +15,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.dobugs.yologaauthenticationapi.domain.Provider;
-import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
-import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenDto;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -53,14 +54,14 @@ class TokenGeneratorTest {
         @DisplayName("token 을 생성한다")
         @Test
         void success() {
-            final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, "bearer");
+            final OAuthTokenDto oAuthTokenDto = new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, "bearer");
 
-            final ServiceTokenResponse serviceTokenResponse = tokenGenerator.create(MEMBER_ID, PROVIDER, tokenResponse);
+            final ServiceTokenDto serviceTokenDto = tokenGenerator.create(MEMBER_ID, PROVIDER, oAuthTokenDto);
 
-            final Integer memberId = extractMemberId(serviceTokenResponse.accessToken());
-            final String accessToken = extractToken(serviceTokenResponse.accessToken());
-            final String refreshToken = extractToken(serviceTokenResponse.refreshToken());
-            final String provider = extractProvider(serviceTokenResponse.accessToken());
+            final Integer memberId = extractMemberId(serviceTokenDto.accessToken());
+            final String accessToken = extractToken(serviceTokenDto.accessToken());
+            final String refreshToken = extractToken(serviceTokenDto.refreshToken());
+            final String provider = extractProvider(serviceTokenDto.accessToken());
             assertAll(
                 () -> assertThat(memberId).isEqualTo(MEMBER_ID),
                 () -> assertThat(accessToken).isEqualTo(ACCESS_TOKEN),
@@ -177,6 +178,38 @@ class TokenGeneratorTest {
                 .setExpiration(expiration)
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
+        }
+    }
+
+    @DisplayName("refresh token 만료 시간 설정 테스트")
+    @Nested
+    public class setUpRefreshTokenExpiration {
+
+        private static final String ACCESS_TOKEN = "accessToken";
+        private static final String REFRESH_TOKEN = "refreshToken";
+        private static final int EXPIRATION = 10_000;
+        private static final String TOKEN_TYPE = "Bearer";
+
+        @DisplayName("refresh token 의 만료 시간이 설정되어 있으면 그대로 반환한다")
+        @Test
+        void notSetUp() {
+            final int refreshTokenExpiresIn = 10_000;
+            final OAuthTokenResponse oAuthTokenResponse = new OAuthTokenResponse(ACCESS_TOKEN, EXPIRATION, REFRESH_TOKEN, refreshTokenExpiresIn, TOKEN_TYPE);
+
+            final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(oAuthTokenResponse);
+
+            assertThat(oAuthTokenDto.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpiresIn);
+        }
+
+        @DisplayName("refresh token 이 -1 이면 기본 만료 시간으로 설정한다")
+        @Test
+        void setUp() {
+            final int refreshTokenExpiresIn = -1;
+            final OAuthTokenResponse oAuthTokenResponse = new OAuthTokenResponse(ACCESS_TOKEN, EXPIRATION, REFRESH_TOKEN, refreshTokenExpiresIn, TOKEN_TYPE);
+
+            final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(oAuthTokenResponse);
+
+            assertThat(oAuthTokenDto.refreshTokenExpiresIn()).isEqualTo(DEFAULT_REFRESH_TOKEN_EXPIRES_IN);
         }
     }
 }

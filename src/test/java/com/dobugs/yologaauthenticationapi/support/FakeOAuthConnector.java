@@ -1,7 +1,7 @@
 package com.dobugs.yologaauthenticationapi.support;
 
-import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
-import com.dobugs.yologaauthenticationapi.support.dto.response.UserResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthUserResponse;
 
 public class FakeOAuthConnector implements OAuthConnector {
 
@@ -13,8 +13,8 @@ public class FakeOAuthConnector implements OAuthConnector {
     }
 
     @Override
-    public TokenResponse requestToken(final String authorizationCode, final String redirectUrl) {
-        return new TokenResponse(
+    public OAuthTokenResponse requestToken(final String authorizationCode, final String redirectUrl) {
+        return new OAuthTokenResponse(
             "accessToken", 1_000,
             "refreshToken", 10_000,
             "Bearer"
@@ -22,13 +22,13 @@ public class FakeOAuthConnector implements OAuthConnector {
     }
 
     @Override
-    public UserResponse requestUserInfo(final String tokenType, final String accessToken) {
-        return new UserResponse(String.valueOf(123456789));
+    public OAuthUserResponse requestUserInfo(final String tokenType, final String accessToken) {
+        return new OAuthUserResponse(String.valueOf(123456789));
     }
 
     @Override
-    public TokenResponse requestAccessToken(final String refreshToken) {
-        return new TokenResponse(
+    public OAuthTokenResponse requestAccessToken(final String refreshToken) {
+        return new OAuthTokenResponse(
             "accessToken", 1_000,
             "refreshToken", 10_000,
             "Bearer"

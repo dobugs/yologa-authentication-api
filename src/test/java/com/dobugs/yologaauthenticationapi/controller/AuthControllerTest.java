@@ -28,7 +28,7 @@ import org.springframework.util.MultiValueMap;
 import com.dobugs.yologaauthenticationapi.service.AuthService;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
-import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
+import com.dobugs.yologaauthenticationapi.service.dto.response.ServiceTokenResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @AutoConfigureMockMvc
@@ -86,7 +86,7 @@ class AuthControllerTest {
         final OAuthCodeRequest request = new OAuthCodeRequest("authorizationCode");
         final String body = objectMapper.writeValueAsString(request);
 
-        final OAuthTokenResponse response = new OAuthTokenResponse("accessToken", "refreshToken");
+        final ServiceTokenResponse response = new ServiceTokenResponse("accessToken", "refreshToken");
         given(authService.login(any(), any())).willReturn(response);
 
         mockMvc.perform(post(BASIC_URL + "/login")
@@ -108,7 +108,7 @@ class AuthControllerTest {
         final String accessToken = "accessToken";
         final String refreshToken = "refreshToken";
 
-        final OAuthTokenResponse response = new OAuthTokenResponse(accessToken, refreshToken);
+        final ServiceTokenResponse response = new ServiceTokenResponse(accessToken, refreshToken);
         given(authService.reissue(refreshToken)).willReturn(response);
 
         mockMvc.perform(post(BASIC_URL + "/reissue")
