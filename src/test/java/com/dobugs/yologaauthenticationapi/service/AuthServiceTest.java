@@ -26,11 +26,11 @@ import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
-import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthTokenResponse;
+import com.dobugs.yologaauthenticationapi.service.dto.response.ServiceTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.FakeOAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
-import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
 import io.jsonwebtoken.Jwts;
@@ -101,9 +101,9 @@ class AuthServiceTest {
             final OAuthCodeRequest codeRequest = new OAuthCodeRequest("authorizationCode");
 
             given(memberRepository.findByOauthId(any())).willReturn(Optional.of(new Member("oauthId")));
-            given(tokenGenerator.create(any(), eq(provider), any())).willReturn(new ServiceTokenResponse(ACCESS_TOKEN, REFRESH_TOKEN));
+            given(tokenGenerator.create(any(), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
-            final OAuthTokenResponse response = authService.login(request, codeRequest);
+            final ServiceTokenResponse response = authService.login(request, codeRequest);
 
             assertAll(
                 () -> assertThat(response.accessToken()).isEqualTo(ACCESS_TOKEN),
@@ -131,9 +131,9 @@ class AuthServiceTest {
             final OAuthCodeRequest codeRequest = new OAuthCodeRequest("authorizationCode");
 
             given(memberRepository.findByOauthId(any())).willReturn(Optional.empty());
-            given(tokenGenerator.create(any(), eq(provider), any())).willReturn(new ServiceTokenResponse(ACCESS_TOKEN, REFRESH_TOKEN));
+            given(tokenGenerator.create(any(), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
-            final OAuthTokenResponse response = authService.login(request, codeRequest);
+            final ServiceTokenResponse response = authService.login(request, codeRequest);
 
             assertAll(
                 () -> assertThat(response.accessToken()).isEqualTo(ACCESS_TOKEN),
@@ -157,7 +157,7 @@ class AuthServiceTest {
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(memberId, provider, refreshToken));
             given(tokenRepository.exist(memberId)).willReturn(true);
             given(tokenRepository.existRefreshToken(memberId, refreshToken)).willReturn(true);
-            given(tokenGenerator.create(eq(memberId), eq(provider), any())).willReturn(new ServiceTokenResponse("accessToken", "refreshToken"));
+            given(tokenGenerator.create(eq(memberId), eq(provider), any())).willReturn(new ServiceTokenDto("accessToken", "refreshToken"));
 
             assertThatCode(() -> authService.reissue(serviceToken))
                 .doesNotThrowAnyException();

@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import com.dobugs.yologaauthenticationapi.domain.Provider;
-import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
-import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -53,14 +53,14 @@ class TokenGeneratorTest {
         @DisplayName("token 을 생성한다")
         @Test
         void success() {
-            final TokenResponse tokenResponse = new TokenResponse(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, "bearer");
+            final OAuthTokenResponse oAuthTokenResponse = new OAuthTokenResponse(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, "bearer");
 
-            final ServiceTokenResponse serviceTokenResponse = tokenGenerator.create(MEMBER_ID, PROVIDER, tokenResponse);
+            final ServiceTokenDto serviceTokenDto = tokenGenerator.create(MEMBER_ID, PROVIDER, oAuthTokenResponse);
 
-            final Integer memberId = extractMemberId(serviceTokenResponse.accessToken());
-            final String accessToken = extractToken(serviceTokenResponse.accessToken());
-            final String refreshToken = extractToken(serviceTokenResponse.refreshToken());
-            final String provider = extractProvider(serviceTokenResponse.accessToken());
+            final Integer memberId = extractMemberId(serviceTokenDto.accessToken());
+            final String accessToken = extractToken(serviceTokenDto.accessToken());
+            final String refreshToken = extractToken(serviceTokenDto.refreshToken());
+            final String provider = extractProvider(serviceTokenDto.accessToken());
             assertAll(
                 () -> assertThat(memberId).isEqualTo(MEMBER_ID),
                 () -> assertThat(accessToken).isEqualTo(ACCESS_TOKEN),

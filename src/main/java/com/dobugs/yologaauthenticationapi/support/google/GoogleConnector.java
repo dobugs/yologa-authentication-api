@@ -11,8 +11,8 @@ import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleUserResponse;
-import com.dobugs.yologaauthenticationapi.support.dto.response.TokenResponse;
-import com.dobugs.yologaauthenticationapi.support.dto.response.UserResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthUserResponse;
 import com.dobugs.yologaauthenticationapi.support.exception.OAuthConnectionException;
 
 import lombok.Getter;
@@ -33,22 +33,22 @@ public class GoogleConnector implements OAuthConnector {
     }
 
     @Override
-    public TokenResponse requestToken(final String authorizationCode, final String redirectUrl) {
+    public OAuthTokenResponse requestToken(final String authorizationCode, final String redirectUrl) {
         final GoogleTokenResponse response = connectForToken(authorizationCode, redirectUrl);
-        return new TokenResponse(response.access_token(), response.expires_in(), response.refresh_token(),
+        return new OAuthTokenResponse(response.access_token(), response.expires_in(), response.refresh_token(),
             REFRESH_TOKEN_EXPIRES_IN, response.token_type());
     }
 
     @Override
-    public UserResponse requestUserInfo(final String tokenType, final String accessToken) {
+    public OAuthUserResponse requestUserInfo(final String tokenType, final String accessToken) {
         final GoogleUserResponse response = connectForUserInfo(tokenType, accessToken);
-        return new UserResponse(response.id());
+        return new OAuthUserResponse(response.id());
     }
 
     @Override
-    public TokenResponse requestAccessToken(final String refreshToken) {
+    public OAuthTokenResponse requestAccessToken(final String refreshToken) {
         final GoogleTokenResponse response = connectForAccessToken(refreshToken);
-        return new TokenResponse(response.access_token(), response.expires_in(), refreshToken,
+        return new OAuthTokenResponse(response.access_token(), response.expires_in(), refreshToken,
             REFRESH_TOKEN_EXPIRES_IN, response.token_type());
     }
 
