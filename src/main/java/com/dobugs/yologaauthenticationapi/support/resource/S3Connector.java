@@ -30,7 +30,7 @@ public class S3Connector implements StorageConnector {
     public ResourceResponse save(final MultipartFile resource, final String path, final String resourceName) {
         final String resourceKey = concatResourceKey(path, resourceName);
         final ByteArrayInputStream serializedResource = serialize(resource);
-        final S3Resource savedResource = s3Template.store(s3Provider.bucket(), resourceKey, serializedResource);
+        final S3Resource savedResource = s3Template.upload(s3Provider.bucket(), resourceKey, serializedResource);
         return createResourceResponse(resourceKey, savedResource);
     }
 
