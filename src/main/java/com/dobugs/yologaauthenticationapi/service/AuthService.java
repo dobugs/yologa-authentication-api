@@ -17,6 +17,7 @@ import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse
 import com.dobugs.yologaauthenticationapi.service.dto.response.ServiceTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthUserResponse;
@@ -54,8 +55,9 @@ public class AuthService {
         final OAuthTokenResponse oAuthTokenResponse = oAuthConnector.requestToken(authorizationCode, redirectUrl);
         final OAuthUserResponse oAuthUserResponse = oAuthConnector.requestUserInfo(oAuthTokenResponse.tokenType(), oAuthTokenResponse.accessToken());
 
-        final Long memberId = saveMember(provider, oAuthTokenResponse, oAuthUserResponse);
-        final ServiceTokenDto serviceTokenDto = tokenGenerator.create(memberId, provider, oAuthTokenResponse);
+        final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(oAuthTokenResponse);
+        final Long memberId = saveMember(provider, oAuthTokenDto, oAuthUserResponse);
+        final ServiceTokenDto serviceTokenDto = tokenGenerator.create(memberId, provider, oAuthTokenDto);
 
         return new ServiceTokenResponse(serviceTokenDto.accessToken(), serviceTokenDto.refreshToken());
     }
@@ -67,8 +69,9 @@ public class AuthService {
 
         validateTheExistenceOfRefreshToken(userTokenResponse.memberId(), refreshToken);
         final OAuthTokenResponse response = oAuthConnector.requestAccessToken(refreshToken);
-        restoreRefreshToken(userTokenResponse.memberId(), response.refreshToken());
-        final ServiceTokenDto serviceTokenDto = tokenGenerator.create(userTokenResponse.memberId(), userTokenResponse.provider(), response);
+        final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(response);
+        restoreRefreshToken(userTokenResponse.memberId(), oAuthTokenDto.refreshToken());
+        final ServiceTokenDto serviceTokenDto = tokenGenerator.create(userTokenResponse.memberId(), userTokenResponse.provider(), oAuthTokenDto);
         return new ServiceTokenResponse(serviceTokenDto.accessToken(), serviceTokenDto.refreshToken());
     }
 
@@ -80,9 +83,9 @@ public class AuthService {
         tokenRepository.delete(memberId);
     }
 
-    private Long saveMember(final String provider, final OAuthTokenResponse oAuthTokenResponse, final OAuthUserResponse OAuthUserResponse) {
+    private Long saveMember(final String provider, final OAuthTokenDto oAuthTokenDto, final OAuthUserResponse OAuthUserResponse) {
         final Member savedMember = saveMemberToMySQL(OAuthUserResponse);
-        saveMemberToRedis(provider, oAuthTokenResponse, savedMember);
+        saveMemberToRedis(provider, oAuthTokenDto, savedMember);
         return savedMember.getId();
     }
 
@@ -100,10 +103,10 @@ public class AuthService {
         return savedMember;
     }
 
-    private void saveMemberToRedis(final String provider, final OAuthTokenResponse oAuthTokenResponse, final Member savedMember) {
+    private void saveMemberToRedis(final String provider, final OAuthTokenDto oAuthTokenDto, final Member savedMember) {
         final OAuthToken oAuthToken = OAuthToken.login(
             savedMember.getId(), Provider.findOf(provider),
-            oAuthTokenResponse.refreshToken(), (long) oAuthTokenResponse.refreshTokenExpiresIn()
+            oAuthTokenDto.refreshToken(), (long) oAuthTokenDto.refreshTokenExpiresIn()
         );
         tokenRepository.save(oAuthToken);
     }

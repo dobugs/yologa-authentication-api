@@ -8,6 +8,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
@@ -35,11 +36,10 @@ public class TokenGenerator {
         this.defaultRefreshTokenExpiresIn = defaultRefreshTokenExpiresIn;
     }
 
-    public ServiceTokenDto create(final Long memberId, final String provider, final OAuthTokenResponse oAuthTokenResponse) {
+    public ServiceTokenDto create(final Long memberId, final String provider, final OAuthTokenDto oAuthTokenDto) {
         final Date now = new Date();
-        final String accessToken = createToken(memberId, provider, oAuthTokenResponse.accessToken(), now, new Date(now.getTime() + oAuthTokenResponse.expiresIn() * 1000L));
-        final String refreshToken = createToken(memberId, provider, oAuthTokenResponse.refreshToken(), now, extractRefreshTokenExpiration(
-            oAuthTokenResponse, now));
+        final String accessToken = createToken(memberId, provider, oAuthTokenDto.accessToken(), now, new Date(now.getTime() + oAuthTokenDto.expiresIn() * 1000L));
+        final String refreshToken = createToken(memberId, provider, oAuthTokenDto.refreshToken(), now, new Date(now.getTime() + oAuthTokenDto.refreshTokenExpiresIn() * 1000L));
 
         return new ServiceTokenDto(accessToken, refreshToken);
     }
@@ -53,12 +53,16 @@ public class TokenGenerator {
         return new UserTokenResponse(memberId, provider, token);
     }
 
-    private Date extractRefreshTokenExpiration(final OAuthTokenResponse oAuthTokenResponse, final Date now) {
-        final long expiresIn = oAuthTokenResponse.refreshTokenExpiresIn() * 1000L;
+    public OAuthTokenDto setUpRefreshTokenExpiration(final OAuthTokenResponse oAuthTokenResponse) {
+        int expiresIn = oAuthTokenResponse.refreshTokenExpiresIn();
         if (expiresIn < 0) {
-            return new Date(now.getTime() + defaultRefreshTokenExpiresIn);
+            expiresIn = defaultRefreshTokenExpiresIn;
         }
-        return new Date(now.getTime() + expiresIn);
+        return new OAuthTokenDto(
+            oAuthTokenResponse.accessToken(), oAuthTokenResponse.expiresIn(),
+            oAuthTokenResponse.refreshToken(), expiresIn,
+            oAuthTokenResponse.tokenType()
+        );
     }
 
     private String createToken(final Long memberId, final String provider, final String token, final Date issued, final Date expiration) {
