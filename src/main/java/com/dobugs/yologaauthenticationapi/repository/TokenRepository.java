@@ -28,7 +28,6 @@ public class TokenRepository {
         final String key = String.valueOf(oAuthToken.getMemberId());
         final HashMap<String, Object> value = new HashMap<>();
         value.put(OAuthToken.KEY_NAME_OF_PROVIDER, oAuthToken.getProvider().getName());
-        value.put(OAuthToken.KEY_NAME_OF_ACCESS_TOKEN, oAuthToken.getAccessToken());
         value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, oAuthToken.getRefreshToken());
 
         operations.putAll(key, value);
@@ -47,7 +46,7 @@ public class TokenRepository {
 
     public void delete(final Long memberId) {
         operations.delete(String.valueOf(memberId),
-            OAuthToken.KEY_NAME_OF_PROVIDER, OAuthToken.KEY_NAME_OF_ACCESS_TOKEN, OAuthToken.KEY_NAME_OF_REFRESH_TOKEN
+            OAuthToken.KEY_NAME_OF_PROVIDER, OAuthToken.KEY_NAME_OF_REFRESH_TOKEN
         );
     }
 

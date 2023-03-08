@@ -12,7 +12,6 @@ import lombok.Getter;
 public class OAuthToken {
 
     public static final String KEY_NAME_OF_PROVIDER = "provider";
-    public static final String KEY_NAME_OF_ACCESS_TOKEN = "accessToken";
     public static final String KEY_NAME_OF_REFRESH_TOKEN = "refreshToken";
 
     @Id

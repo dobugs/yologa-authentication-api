@@ -90,7 +90,6 @@ class TokenRepositoryTest {
         void restore() {
             final HashMap<String, Object> value = new HashMap<>();
             value.put(OAuthToken.KEY_NAME_OF_PROVIDER, Provider.GOOGLE.getName());
-            value.put(OAuthToken.KEY_NAME_OF_ACCESS_TOKEN, null);
             value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, "beforeRefreshToken");
             operations.putAll(String.valueOf(MEMBER_ID), value);
 
@@ -137,7 +136,6 @@ class TokenRepositoryTest {
         void setUp() {
             final HashMap<String, Object> value = new HashMap<>();
             value.put(OAuthToken.KEY_NAME_OF_PROVIDER, Provider.GOOGLE.getName());
-            value.put(OAuthToken.KEY_NAME_OF_ACCESS_TOKEN, "accessToken");
             value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, "refreshToken");
 
             final HashOperations<String, Object, Object> operations = redisTemplate.opsForHash();
@@ -150,11 +148,9 @@ class TokenRepositoryTest {
             tokenRepository.delete(MEMBER_ID);
 
             final Boolean hasProvider = operations.hasKey(String.valueOf(MEMBER_ID), OAuthToken.KEY_NAME_OF_PROVIDER);
-            final Boolean hasAccessToken = operations.hasKey(String.valueOf(MEMBER_ID), OAuthToken.KEY_NAME_OF_ACCESS_TOKEN);
             final Boolean hasRefreshToken = operations.hasKey(String.valueOf(MEMBER_ID), OAuthToken.KEY_NAME_OF_REFRESH_TOKEN);
             assertAll(
                 () -> assertThat(hasProvider).isFalse(),
-                () -> assertThat(hasAccessToken).isFalse(),
                 () -> assertThat(hasRefreshToken).isFalse()
             );
         }
@@ -171,7 +167,6 @@ class TokenRepositoryTest {
         void setUp() {
             final HashMap<String, Object> value = new HashMap<>();
             value.put(OAuthToken.KEY_NAME_OF_PROVIDER, Provider.GOOGLE.getName());
-            value.put(OAuthToken.KEY_NAME_OF_ACCESS_TOKEN, null);
             value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, EXIST_REFRESH_TOKEN);
 
             final HashOperations<String, Object, Object> operations = redisTemplate.opsForHash();
@@ -208,7 +203,6 @@ class TokenRepositoryTest {
         void setUp() {
             final HashMap<String, Object> value = new HashMap<>();
             value.put(OAuthToken.KEY_NAME_OF_PROVIDER, Provider.GOOGLE.getName());
-            value.put(OAuthToken.KEY_NAME_OF_ACCESS_TOKEN, null);
             value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, EXIST_REFRESH_TOKEN);
 
             final HashOperations<String, Object, Object> operations = redisTemplate.opsForHash();
