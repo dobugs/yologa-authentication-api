@@ -11,6 +11,7 @@ import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleUserResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthRevokeResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthUserResponse;
 import com.dobugs.yologaauthenticationapi.support.exception.OAuthConnectionException;
@@ -52,6 +53,11 @@ public class GoogleConnector implements OAuthConnector {
             REFRESH_TOKEN_EXPIRES_IN, response.token_type());
     }
 
+    @Override
+    public void logout(final String token) {
+        connectForRevokeToken(token);
+    }
+
     private GoogleTokenResponse connectForToken(final String authorizationCode, final String redirectUrl) {
         final ResponseEntity<GoogleTokenResponse> response = REST_TEMPLATE.postForEntity(
             googleProvider.generateTokenUrl(authorizationCode, redirectUrl),
@@ -84,6 +90,15 @@ public class GoogleConnector implements OAuthConnector {
         validateConnectionResponseIsSuccess(response);
         return Optional.ofNullable(response.getBody())
             .orElseThrow(() -> new OAuthConnectionException("Google 에서 Access Token 을 재발급 받는 과정에서 연결에 실패하였습니다."));
+    }
+
+    private void connectForRevokeToken(final String token) {
+        final ResponseEntity<OAuthRevokeResponse> response = REST_TEMPLATE.postForEntity(
+            googleProvider.generateRevokeToken(token),
+            googleProvider.createLogoutEntity(),
+            OAuthRevokeResponse.class
+        );
+        validateConnectionResponseIsSuccess(response);
     }
 
     private void validateConnectionResponseIsSuccess(final ResponseEntity<?> response) {

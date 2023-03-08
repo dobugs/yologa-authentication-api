@@ -16,11 +16,15 @@ public interface OAuthProvider {
 
     String generateAccessTokenUrl(String refreshToken);
 
+    String generateRevokeToken(String token);
+
     HttpEntity<MultiValueMap<String, String>> createTokenEntity();
 
     HttpEntity<MultiValueMap<String, String>> createUserEntity(String tokenType, String accessToken);
 
     HttpEntity<MultiValueMap<String, String>> createAccessTokenEntity();
+
+    HttpEntity<MultiValueMap<String, String>> createLogoutEntity();
 
     default String concatParams(final Map<String, String> params) {
         return params.entrySet()

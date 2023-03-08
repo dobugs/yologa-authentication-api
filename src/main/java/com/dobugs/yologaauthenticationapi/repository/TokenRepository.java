@@ -1,6 +1,7 @@
 package com.dobugs.yologaauthenticationapi.repository;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.data.redis.core.HashOperations;
@@ -44,21 +45,15 @@ public class TokenRepository {
         }
     }
 
+    public Optional<String> findRefreshToken(final Long memberId) {
+        final String key = String.valueOf(memberId);
+        return Optional.ofNullable((String) operations.get(key, OAuthToken.KEY_NAME_OF_REFRESH_TOKEN));
+    }
+
     public void delete(final Long memberId) {
         operations.delete(String.valueOf(memberId),
             OAuthToken.KEY_NAME_OF_PROVIDER, OAuthToken.KEY_NAME_OF_REFRESH_TOKEN
         );
-    }
-
-    public boolean exist(final Long memberId) {
-        final String key = String.valueOf(memberId);
-        return operations.hasKey(key, OAuthToken.KEY_NAME_OF_REFRESH_TOKEN);
-    }
-
-    public boolean existRefreshToken(final Long memberId, final String refreshToken) {
-        final String key = String.valueOf(memberId);
-        final String savedRefreshToken = (String) operations.get(key, OAuthToken.KEY_NAME_OF_REFRESH_TOKEN);
-        return refreshToken.equals(savedRefreshToken);
     }
 
     private boolean isAbleToReconfigureExpiration(final Long expiration) {

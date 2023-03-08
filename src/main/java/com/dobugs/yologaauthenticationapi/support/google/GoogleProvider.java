@@ -25,6 +25,7 @@ public class GoogleProvider implements OAuthProvider {
     private final String authUrl;
     private final String accessTokenUrl;
     private final String userInfoUrl;
+    private final String logoutUrl;
     private final String grantType;
 
     public GoogleProvider(
@@ -35,6 +36,7 @@ public class GoogleProvider implements OAuthProvider {
         @Value("${oauth2.google.url.auth}") final String authUrl,
         @Value("${oauth2.google.url.token}") final String accessTokenUrl,
         @Value("${oauth2.google.url.userinfo}") final String userInfoUrl,
+        @Value("${oauth2.google.url.logout}") final String logoutUrl,
         @Value("${oauth2.google.grant-type}") final String grantType
     ) {
         this.clientId = clientId;
@@ -44,6 +46,7 @@ public class GoogleProvider implements OAuthProvider {
         this.authUrl = authUrl;
         this.accessTokenUrl = accessTokenUrl;
         this.userInfoUrl = userInfoUrl;
+        this.logoutUrl = logoutUrl;
         this.grantType = grantType;
     }
 
@@ -86,6 +89,13 @@ public class GoogleProvider implements OAuthProvider {
     }
 
     @Override
+    public String generateRevokeToken(final String token) {
+        final Map<String, String> params = new HashMap<>();
+        params.put("token", token);
+        return logoutUrl + "?" + concatParams(params);
+    }
+
+    @Override
     public HttpEntity<MultiValueMap<String, String>> createTokenEntity() {
         return new HttpEntity<>(createTokenHeaders());
     }
@@ -97,6 +107,11 @@ public class GoogleProvider implements OAuthProvider {
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createAccessTokenEntity() {
+        return new HttpEntity<>(createTokenHeaders());
+    }
+
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createLogoutEntity() {
         return new HttpEntity<>(createTokenHeaders());
     }
 

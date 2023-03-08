@@ -34,4 +34,9 @@ public class FakeOAuthConnector implements OAuthConnector {
             "Bearer"
         );
     }
+
+    @Override
+    public void logout(final String token) {
+
+    }
 }

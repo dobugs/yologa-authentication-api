@@ -16,4 +16,6 @@ public interface OAuthConnector {
     OAuthUserResponse requestUserInfo(String tokenType, String accessToken);
 
     OAuthTokenResponse requestAccessToken(String refreshToken);
+
+    void logout(String token);
 }

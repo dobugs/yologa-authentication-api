@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.AfterEach;
@@ -149,6 +150,39 @@ class TokenRepositoryTest {
         }
     }
 
+    @DisplayName("Refresh Token 조회 테스트")
+    @Nested
+    public class findRefreshToken {
+
+        private static final long MEMBER_ID = 0L;
+        private static final String REFRESH_TOKEN = "refreshToken";
+        private static final long EXPIRATION = 1_000L * 10;
+
+        @AfterEach
+        void tearDown() {
+            redisTemplate.delete(String.valueOf(MEMBER_ID));
+        }
+
+        @DisplayName("Member ID 에 저장되어 있는 Refresh Token 을 조회한다")
+        @Test
+        void success() {
+            operations.put(String.valueOf(MEMBER_ID), OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, REFRESH_TOKEN);
+            redisTemplate.expire(String.valueOf(MEMBER_ID), EXPIRATION, TIME_UNIT);
+
+            final Optional<String> refreshToken = tokenRepository.findRefreshToken(MEMBER_ID);
+
+            assertThat(refreshToken).isPresent();
+        }
+
+        @DisplayName("Member ID 에 저장되어 있는 Refresh Token 이 없을 경우 빈값을 반환한다")
+        @Test
+        void notExist() {
+            final Optional<String> refreshToken = tokenRepository.findRefreshToken(MEMBER_ID);
+
+            assertThat(refreshToken).isEmpty();
+        }
+    }
+
     @DisplayName("삭제 테스트")
     @Nested
     public class delete {
@@ -178,95 +212,6 @@ class TokenRepositoryTest {
                 () -> assertThat(hasProvider).isFalse(),
                 () -> assertThat(hasRefreshToken).isFalse()
             );
-        }
-    }
-
-    @DisplayName("사용자 존재 여부 테스트")
-    @Nested
-    public class exist {
-
-        private static final long EXIST_MEMBER_ID = 0L;
-        private static final Provider PROVIDER = Provider.GOOGLE;
-        private static final String EXIST_REFRESH_TOKEN = "refreshToken";
-
-        @BeforeEach
-        void setUp() {
-            final HashMap<String, Object> value = new HashMap<>();
-            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, PROVIDER.getName());
-            value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, EXIST_REFRESH_TOKEN);
-
-            final HashOperations<String, Object, Object> operations = redisTemplate.opsForHash();
-            operations.putAll(String.valueOf(EXIST_MEMBER_ID), value);
-        }
-
-        @DisplayName("member id 에 해당하는 정보가 존재할 경우 true 를 반환한다")
-        @Test
-        void existMemberId() {
-            final boolean exist = tokenRepository.exist(EXIST_MEMBER_ID);
-
-            assertThat(exist).isTrue();
-        }
-
-        @DisplayName("member id 에 해당하는 정보가 존재하지 않을 경우 false 를 반환한다")
-        @Test
-        void notExistMemberId() {
-            final long notExistMemberId = -1L;
-
-            final boolean exist = tokenRepository.exist(notExistMemberId);
-
-            assertThat(exist).isFalse();
-        }
-    }
-
-    @DisplayName("refresh token 존재 여부 테스트")
-    @Nested
-    public class existRefreshToken {
-
-        private static final long EXIST_MEMBER_ID = 0L;
-        private static final Provider PROVIDER = Provider.GOOGLE;
-        private static final String EXIST_REFRESH_TOKEN = "refreshToken";
-
-        @BeforeEach
-        void setUp() {
-            final HashMap<String, Object> value = new HashMap<>();
-            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, PROVIDER.getName());
-            value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, EXIST_REFRESH_TOKEN);
-
-            final HashOperations<String, Object, Object> operations = redisTemplate.opsForHash();
-            operations.putAll(String.valueOf(EXIST_MEMBER_ID), value);
-        }
-
-        @AfterEach
-        void tearDown() {
-            redisTemplate.delete(String.valueOf(EXIST_MEMBER_ID));
-        }
-
-        @DisplayName("member id 에 해당하는 refresh token 이 존재할 경우 true 를 반환한다")
-        @Test
-        void exist() {
-            final boolean existRefreshToken = tokenRepository.existRefreshToken(EXIST_MEMBER_ID, EXIST_REFRESH_TOKEN);
-
-            assertThat(existRefreshToken).isTrue();
-        }
-
-        @DisplayName("member id 가 존재하지 않을 경우 false 를 반환한다")
-        @Test
-        void notExistMemberId() {
-            final long notExistMemberId = -1L;
-
-            final boolean existRefreshToken = tokenRepository.existRefreshToken(notExistMemberId, EXIST_REFRESH_TOKEN);
-
-            assertThat(existRefreshToken).isFalse();
-        }
-
-        @DisplayName("refresh token 이 동일하지 않은 경우 false 를 반환한다")
-        @Test
-        void notEqualsRefreshToken() {
-            final String notExistRefreshToken = "otherRefreshToken";
-
-            final boolean existRefreshToken = tokenRepository.existRefreshToken(EXIST_MEMBER_ID, notExistRefreshToken);
-
-            assertThat(existRefreshToken).isFalse();
         }
     }
 }

@@ -51,6 +51,11 @@ public class KakaoConnector implements OAuthConnector {
             response.refresh_token_expires_in(), response.token_type());
     }
 
+    @Override
+    public void logout(final String token) {
+
+    }
+
     private KakaoTokenResponse connectForToken(final String authorizationCode, final String redirectUrl) {
         final ResponseEntity<KakaoTokenResponse> response = REST_TEMPLATE.postForEntity(
             kakaoProvider.generateTokenUrl(authorizationCode, redirectUrl),

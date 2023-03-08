@@ -52,6 +52,11 @@ public class FakeOAuthProvider implements OAuthProvider {
     }
 
     @Override
+    public String generateRevokeToken(final String token) {
+        return null;
+    }
+
+    @Override
     public HttpEntity<MultiValueMap<String, String>> createTokenEntity() {
         return new HttpEntity<>(createTokenHeaders());
     }
@@ -63,6 +68,11 @@ public class FakeOAuthProvider implements OAuthProvider {
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createAccessTokenEntity() {
+        return new HttpEntity<>(createTokenHeaders());
+    }
+
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createLogoutEntity() {
         return new HttpEntity<>(createTokenHeaders());
     }
 

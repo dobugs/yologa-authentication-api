@@ -77,10 +77,12 @@ public class AuthService {
 
     public void logout(final String serviceToken) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
+        final OAuthConnector oAuthConnector = selectConnector(userTokenResponse.provider());
         final Long memberId = userTokenResponse.memberId();
 
-        validateLogged(memberId);
+        final String refreshToken = findRefreshToken(memberId);
         tokenRepository.delete(memberId);
+        oAuthConnector.logout(refreshToken);
     }
 
     private Long saveMember(final String provider, final OAuthTokenDto oAuthTokenDto, final OAuthUserResponse OAuthUserResponse) {
@@ -115,15 +117,14 @@ public class AuthService {
         tokenRepository.saveRefreshToken(memberId, refreshToken);
     }
 
-    private void validateLogged(final Long memberId) {
-        if (!tokenRepository.exist(memberId)) {
-            throw new IllegalArgumentException(String.format("로그인이 필요합니다. [%d]", memberId));
-        }
+    private String findRefreshToken(final Long memberId) {
+        return tokenRepository.findRefreshToken(memberId)
+            .orElseThrow(() -> new IllegalArgumentException(String.format("로그인이 필요합니다. [%d]", memberId)));
     }
 
     private void validateTheExistenceOfRefreshToken(final Long memberId, final String refreshToken) {
-        validateLogged(memberId);
-        if (!tokenRepository.existRefreshToken(memberId, refreshToken)) {
+        final String savedRefreshToken = findRefreshToken(memberId);
+        if (!savedRefreshToken.equals(refreshToken)) {
             throw new IllegalArgumentException("잘못된 refresh token 입니다.");
         }
     }

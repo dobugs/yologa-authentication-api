@@ -158,8 +158,7 @@ class AuthServiceTest {
             final String serviceToken = createToken(memberId, provider, refreshToken);
 
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(memberId, provider, refreshToken));
-            given(tokenRepository.exist(memberId)).willReturn(true);
-            given(tokenRepository.existRefreshToken(memberId, refreshToken)).willReturn(true);
+            given(tokenRepository.findRefreshToken(memberId)).willReturn(Optional.of(refreshToken));
             given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto("accessToken", 1000, "refreshToken", 1000, "Bearer"));
             given(tokenGenerator.create(eq(memberId), eq(provider), any())).willReturn(new ServiceTokenDto("accessToken", "refreshToken"));
 
@@ -191,7 +190,7 @@ class AuthServiceTest {
             final String serviceToken = createToken(notExistMemberId, provider, existRefreshToken);
 
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(notExistMemberId, provider, existRefreshToken));
-            given(tokenRepository.exist(notExistMemberId)).willReturn(false);
+            given(tokenRepository.findRefreshToken(notExistMemberId)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> authService.reissue(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -207,8 +206,7 @@ class AuthServiceTest {
             final String serviceToken = createToken(existMemberId, provider, notExistRefreshToken);
 
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(existMemberId, provider, notExistRefreshToken));
-            given(tokenRepository.exist(existMemberId)).willReturn(true);
-            given(tokenRepository.existRefreshToken(existMemberId, notExistRefreshToken)).willReturn(false);
+            given(tokenRepository.findRefreshToken(existMemberId)).willReturn(Optional.of("anotherRefreshToken"));
 
             assertThatThrownBy(() -> authService.reissue(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -237,7 +235,7 @@ class AuthServiceTest {
             final String serviceToken = createToken(memberId, provider, refreshToken);
 
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(memberId, provider, refreshToken));
-            given(tokenRepository.exist(memberId)).willReturn(true);
+            given(tokenRepository.findRefreshToken(memberId)).willReturn(Optional.of(refreshToken));
 
             assertThatCode(() -> authService.logout(serviceToken))
                 .doesNotThrowAnyException();
@@ -252,7 +250,7 @@ class AuthServiceTest {
             final String serviceToken = createToken(notExistMemberId, provider, refreshToken);
 
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(notExistMemberId, provider, refreshToken));
-            given(tokenRepository.exist(notExistMemberId)).willReturn(false);
+            given(tokenRepository.findRefreshToken(notExistMemberId)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> authService.logout(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
