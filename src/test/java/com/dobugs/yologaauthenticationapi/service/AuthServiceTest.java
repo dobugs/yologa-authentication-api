@@ -94,16 +94,19 @@ class AuthServiceTest {
 
         private static final String ACCESS_TOKEN = "accessToken";
         private static final String REFRESH_TOKEN = "refreshToken";
+        private static final String TOKEN_TYPE = "Bearer";
+        private static final int EXPIRES_IN = 1_000_000;
+        private static final String AUTHORIZATION_CODE = "authorizationCode";
 
         @DisplayName("로그인한다")
         @ParameterizedTest
         @ValueSource(strings = {"google", "kakao"})
         void success(final String provider) {
             final OAuthRequest request = new OAuthRequest(provider, REDIRECT_URL, REFERRER_URL);
-            final OAuthCodeRequest codeRequest = new OAuthCodeRequest("authorizationCode");
+            final OAuthCodeRequest codeRequest = new OAuthCodeRequest(AUTHORIZATION_CODE);
 
             given(memberRepository.findByOauthId(any())).willReturn(Optional.of(new Member("oauthId")));
-            given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, 1000, REFRESH_TOKEN, 1000, "Bearer"));
+            given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, TOKEN_TYPE));
             given(tokenGenerator.create(any(), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
             final ServiceTokenResponse response = authService.login(request, codeRequest);
@@ -117,9 +120,10 @@ class AuthServiceTest {
         @DisplayName("존재하지 않는 provider 를 요청할 경우 예외가 발생한다")
         @Test
         void notExistProvider() {
-            final String provider = "notExistProvider";
-            final OAuthRequest request = new OAuthRequest(provider, REDIRECT_URL, REFERRER_URL);
-            final OAuthCodeRequest codeRequest = new OAuthCodeRequest("authorizationCode");
+            final String notExistProvider = "notExistProvider";
+
+            final OAuthRequest request = new OAuthRequest(notExistProvider, REDIRECT_URL, REFERRER_URL);
+            final OAuthCodeRequest codeRequest = new OAuthCodeRequest(AUTHORIZATION_CODE);
 
             assertThatThrownBy(() -> authService.login(request, codeRequest))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -131,10 +135,10 @@ class AuthServiceTest {
         @ValueSource(strings = {"google", "kakao"})
         void register(final String provider) {
             final OAuthRequest request = new OAuthRequest(provider, REDIRECT_URL, REFERRER_URL);
-            final OAuthCodeRequest codeRequest = new OAuthCodeRequest("authorizationCode");
+            final OAuthCodeRequest codeRequest = new OAuthCodeRequest(AUTHORIZATION_CODE);
 
             given(memberRepository.findByOauthId(any())).willReturn(Optional.empty());
-            given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, 1000, REFRESH_TOKEN, 1000, "Bearer"));
+            given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, TOKEN_TYPE));
             given(tokenGenerator.create(any(), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
             final ServiceTokenResponse response = authService.login(request, codeRequest);
@@ -154,7 +158,7 @@ class AuthServiceTest {
         private static final String TOKEN_TYPE = "Bearer";
         private static final String ACCESS_TOKEN = "accessToken";
         private static final String REFRESH_TOKEN = "refreshToken";
-        private static final int EXPIRES_IN = 1_000;
+        private static final int EXPIRES_IN = 1_000_000;
 
         @DisplayName("Access Token 을 재발급한다")
         @ParameterizedTest
@@ -204,8 +208,8 @@ class AuthServiceTest {
         @ValueSource(strings = {"google", "kakao"})
         void notEqualsRefreshToken(final String provider) {
             final String notExistRefreshToken = "refreshToken";
-            final String serviceToken = createToken(MEMBER_ID, provider, notExistRefreshToken);
 
+            final String serviceToken = createToken(MEMBER_ID, provider, notExistRefreshToken);
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, provider, TOKEN_TYPE, notExistRefreshToken));
             given(tokenRepository.findRefreshToken(MEMBER_ID)).willReturn(Optional.of("anotherRefreshToken"));
 
@@ -230,15 +234,14 @@ class AuthServiceTest {
         private static final Long MEMBER_ID = 0L;
         private static final String PROVIDER = Provider.GOOGLE.getName();
         private static final String TOKEN_TYPE = "Bearer";
-        private static final String ACCESS_TOKEN = "accessToken";
         private static final String REFRESH_TOKEN = "refreshToken";
-        private static final int EXPIRES_IN = 1_000;
 
         @DisplayName("로그아웃한다")
-        @Test
-        void success() {
-            final String serviceToken = createToken(MEMBER_ID, PROVIDER, REFRESH_TOKEN);
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, REFRESH_TOKEN));
+        @ParameterizedTest
+        @ValueSource(strings = {"google", "kakao"})
+        void success(final String provider) {
+            final String serviceToken = createToken(MEMBER_ID, provider, REFRESH_TOKEN);
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, provider, TOKEN_TYPE, REFRESH_TOKEN));
             given(tokenRepository.findRefreshToken(MEMBER_ID)).willReturn(Optional.of(REFRESH_TOKEN));
 
             assertThatCode(() -> authService.logout(serviceToken))

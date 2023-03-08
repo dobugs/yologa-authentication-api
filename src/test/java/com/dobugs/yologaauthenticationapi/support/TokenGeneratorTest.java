@@ -50,24 +50,27 @@ class TokenGeneratorTest {
         private static final String PROVIDER = Provider.GOOGLE.getName();
         private static final String ACCESS_TOKEN = "accessToken";
         private static final String REFRESH_TOKEN = "refreshToken";
-        private static final int EXPIRES_IN = 1000;
+        private static final String TOKEN_TYPE = "bearer";
+        private static final int EXPIRES_IN = 1_000_000;
 
         @DisplayName("token 을 생성한다")
         @Test
         void success() {
-            final OAuthTokenDto oAuthTokenDto = new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, "bearer");
+            final OAuthTokenDto oAuthTokenDto = new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, TOKEN_TYPE);
 
             final ServiceTokenDto serviceTokenDto = tokenGenerator.create(MEMBER_ID, PROVIDER, oAuthTokenDto);
 
             final Integer memberId = extractMemberId(serviceTokenDto.accessToken());
-            final String accessToken = extractToken(serviceTokenDto.accessToken());
-            final String refreshToken = extractToken(serviceTokenDto.refreshToken());
-            final String provider = extractProvider(serviceTokenDto.accessToken());
+            final String accessToken = extract(serviceTokenDto.accessToken(), "token");
+            final String refreshToken = extract(serviceTokenDto.refreshToken(), "token");
+            final String provider = extract(serviceTokenDto.accessToken(), "provider");
+            final String tokenType = extract(serviceTokenDto.accessToken(), "tokenType");
             assertAll(
                 () -> assertThat(memberId).isEqualTo(MEMBER_ID),
                 () -> assertThat(accessToken).isEqualTo(ACCESS_TOKEN),
                 () -> assertThat(refreshToken).isEqualTo(REFRESH_TOKEN),
-                () -> assertThat(provider).isEqualTo(PROVIDER)
+                () -> assertThat(provider).isEqualTo(PROVIDER),
+                () -> assertThat(tokenType).isEqualTo(TOKEN_TYPE)
             );
         }
 
@@ -80,22 +83,13 @@ class TokenGeneratorTest {
                 .get("memberId");
         }
 
-        private String extractToken(final String createdToken) {
+        private String extract(final String createdToken, final String payloadName) {
             return (String) Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
                 .build()
                 .parseClaimsJws(createdToken)
                 .getBody()
-                .get("token");
-        }
-
-        private String extractProvider(final String createdToken) {
-            return (String) Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
-                .build()
-                .parseClaimsJws(createdToken)
-                .getBody()
-                .get("provider");
+                .get(payloadName);
         }
     }
 
@@ -105,13 +99,14 @@ class TokenGeneratorTest {
 
         private static final long MEMBER_ID = 0L;
         private static final String PROVIDER = Provider.GOOGLE.getName();
+        private static final String TOKEN_TYPE = "Bearer";
         private static final String ACCESS_TOKEN = "accessToken";
         private static final Date EXPIRATION = new Date(new Date().getTime() + 10_000);
 
         @DisplayName("token 을 추출한다")
         @Test
         void success() {
-            final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN, EXPIRATION);
+            final String serviceToken = createToken(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN, EXPIRATION);
 
             final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
 
@@ -137,6 +132,7 @@ class TokenGeneratorTest {
             final String serviceToken = Jwts.builder()
                 .claim("memberId", MEMBER_ID)
                 .claim("provider", PROVIDER)
+                .claim("tokenType", TOKEN_TYPE)
                 .claim("token", ACCESS_TOKEN)
                 .setExpiration(EXPIRATION)
                 .compact();
@@ -152,6 +148,7 @@ class TokenGeneratorTest {
             final String serviceToken = Jwts.builder()
                 .claim("memberId", MEMBER_ID)
                 .claim("provider", PROVIDER)
+                .claim("tokenType", TOKEN_TYPE)
                 .claim("token", ACCESS_TOKEN)
                 .setExpiration(EXPIRATION)
                 .signWith(differentSecretKey, SignatureAlgorithm.HS256)
@@ -165,16 +162,17 @@ class TokenGeneratorTest {
         @Test
         void JWTIsExpired() {
             final Date expiration = new Date(new Date().getTime() - 1);
-            final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN, expiration);
+            final String serviceToken = createToken(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN, expiration);
 
             assertThatThrownBy(() -> tokenGenerator.extract(serviceToken))
                 .isInstanceOf(ExpiredJwtException.class);
         }
 
-        private String createToken(final Long memberId, final String provider, final String token, final Date expiration) {
+        private String createToken(final Long memberId, final String provider, final String tokenType, final String token, final Date expiration) {
             return Jwts.builder()
                 .claim("memberId", memberId)
                 .claim("provider", provider)
+                .claim("tokenType", tokenType)
                 .claim("token", token)
                 .setExpiration(expiration)
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
