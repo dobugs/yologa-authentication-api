@@ -97,32 +97,33 @@ public class GoogleProvider implements OAuthProvider {
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createTokenEntity() {
-        return new HttpEntity<>(createTokenHeaders());
+        return new HttpEntity<>(createBasicHeaders());
     }
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createUserEntity(final String tokenType, final String accessToken) {
-        return new HttpEntity<>(createUserHeaders(tokenType, accessToken));
+        return new HttpEntity<>(createAuthorizationHeaders(tokenType, accessToken));
     }
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createAccessTokenEntity() {
-        return new HttpEntity<>(createTokenHeaders());
+        return new HttpEntity<>(createBasicHeaders());
     }
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createLogoutEntity(final String tokenType, final String refreshToken) {
-        return new HttpEntity<>(createTokenHeaders());
+        return new HttpEntity<>(createBasicHeaders());
     }
 
-    private HttpHeaders createTokenHeaders() {
+    private HttpHeaders createBasicHeaders() {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         return headers;
     }
 
-    private HttpHeaders createUserHeaders(final String tokenType, final String accessToken) {
+    private HttpHeaders createAuthorizationHeaders(final String tokenType, final String accessToken) {
         final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.set("Authorization", String.join(" ", tokenType, accessToken));
         return headers;
     }
