@@ -21,6 +21,7 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class TokenGenerator {
 
+    private static final String SERVICE_TOKEN_TYPE = "Bearer ";
     private static final String PAYLOAD_NAME_OF_MEMBER_ID = "memberId";
     private static final String PAYLOAD_NAME_OF_PROVIDER = "provider";
     private static final String PAYLOAD_NAME_OF_TOKEN_TYPE = "tokenType";
@@ -47,7 +48,7 @@ public class TokenGenerator {
     }
 
     public UserTokenResponse extract(final String serviceToken) {
-        final String jwt = serviceToken.replace("Bearer ", "");
+        final String jwt = serviceToken.replace(SERVICE_TOKEN_TYPE, "");
         final Claims claims = extractClaims(jwt);
         final Long memberId = extractMemberId(claims);
         final String provider = extractProvider(claims);
