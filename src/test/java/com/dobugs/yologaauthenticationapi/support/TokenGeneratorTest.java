@@ -32,13 +32,14 @@ class TokenGeneratorTest {
 
     private static final String SECRET_KEY_VALUE = "secretKey".repeat(10);
     private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_VALUE.getBytes(StandardCharsets.UTF_8));
-    private static final int DEFAULT_REFRESH_TOKEN_EXPIRES_IN = 1000;
+    private static final long ACCESS_TOKEN_EXPIRES_IN = 1000;
+    private static final long REFRESH_TOKEN_EXPIRES_IN = 1000;
 
     private TokenGenerator tokenGenerator;
 
     @BeforeEach
     void setUp() {
-        tokenGenerator = new TokenGenerator(SECRET_KEY_VALUE, DEFAULT_REFRESH_TOKEN_EXPIRES_IN);
+        tokenGenerator = new TokenGenerator(SECRET_KEY_VALUE, ACCESS_TOKEN_EXPIRES_IN, REFRESH_TOKEN_EXPIRES_IN);
     }
 
     @DisplayName("token 생성 테스트")
@@ -181,35 +182,26 @@ class TokenGeneratorTest {
         }
     }
 
-    @DisplayName("refresh token 만료 시간 설정 테스트")
+    @DisplayName("만료 시간 설정 테스트")
     @Nested
-    public class setUpRefreshTokenExpiration {
+    public class setUpExpiration {
 
         private static final String ACCESS_TOKEN = "accessToken";
         private static final String REFRESH_TOKEN = "refreshToken";
-        private static final int EXPIRATION = 10_000;
+        private static final int EXPIRATION = 1;
         private static final String TOKEN_TYPE = "Bearer";
 
-        @DisplayName("refresh token 의 만료 시간이 설정되어 있으면 그대로 반환한다")
+        @DisplayName("만료 시간을 설정한다")
         @Test
-        void notSetUp() {
-            final int refreshTokenExpiresIn = 10_000;
-            final OAuthTokenResponse oAuthTokenResponse = new OAuthTokenResponse(ACCESS_TOKEN, EXPIRATION, REFRESH_TOKEN, refreshTokenExpiresIn, TOKEN_TYPE);
+        void success() {
+            final OAuthTokenResponse oAuthTokenResponse = new OAuthTokenResponse(ACCESS_TOKEN, EXPIRATION, REFRESH_TOKEN, EXPIRATION, TOKEN_TYPE);
 
-            final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(oAuthTokenResponse);
+            final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpExpiration(oAuthTokenResponse);
 
-            assertThat(oAuthTokenDto.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpiresIn);
-        }
-
-        @DisplayName("refresh token 이 -1 이면 기본 만료 시간으로 설정한다")
-        @Test
-        void setUp() {
-            final int refreshTokenExpiresIn = -1;
-            final OAuthTokenResponse oAuthTokenResponse = new OAuthTokenResponse(ACCESS_TOKEN, EXPIRATION, REFRESH_TOKEN, refreshTokenExpiresIn, TOKEN_TYPE);
-
-            final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(oAuthTokenResponse);
-
-            assertThat(oAuthTokenDto.refreshTokenExpiresIn()).isEqualTo(DEFAULT_REFRESH_TOKEN_EXPIRES_IN);
+            assertAll(
+                () -> assertThat(oAuthTokenDto.expiresIn()).isEqualTo(ACCESS_TOKEN_EXPIRES_IN),
+                () -> assertThat(oAuthTokenDto.refreshTokenExpiresIn()).isEqualTo(REFRESH_TOKEN_EXPIRES_IN)
+            );
         }
     }
 }

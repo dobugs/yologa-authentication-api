@@ -12,7 +12,7 @@ import com.dobugs.yologaauthenticationapi.domain.OAuthToken;
 @Repository
 public class TokenRepository {
 
-    private static final TimeUnit DEFAULT_TIME_UNIT = TimeUnit.SECONDS;
+    private static final TimeUnit DEFAULT_TIME_UNIT = TimeUnit.MILLISECONDS;
     private static final long INFINITE_EXPIRATION = -1L;
     private static final long DELETED = -2L;
 

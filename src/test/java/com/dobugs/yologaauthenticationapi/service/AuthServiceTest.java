@@ -102,7 +102,7 @@ class AuthServiceTest {
             final OAuthCodeRequest codeRequest = new OAuthCodeRequest("authorizationCode");
 
             given(memberRepository.findByOauthId(any())).willReturn(Optional.of(new Member("oauthId")));
-            given(tokenGenerator.setUpRefreshTokenExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, 1000, REFRESH_TOKEN, 1000, "Bearer"));
+            given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, 1000, REFRESH_TOKEN, 1000, "Bearer"));
             given(tokenGenerator.create(any(), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
             final ServiceTokenResponse response = authService.login(request, codeRequest);
@@ -133,7 +133,7 @@ class AuthServiceTest {
             final OAuthCodeRequest codeRequest = new OAuthCodeRequest("authorizationCode");
 
             given(memberRepository.findByOauthId(any())).willReturn(Optional.empty());
-            given(tokenGenerator.setUpRefreshTokenExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, 1000, REFRESH_TOKEN, 1000, "Bearer"));
+            given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, 1000, REFRESH_TOKEN, 1000, "Bearer"));
             given(tokenGenerator.create(any(), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
             final ServiceTokenResponse response = authService.login(request, codeRequest);
@@ -160,7 +160,7 @@ class AuthServiceTest {
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(memberId, provider, refreshToken));
             given(tokenRepository.exist(memberId)).willReturn(true);
             given(tokenRepository.existRefreshToken(memberId, refreshToken)).willReturn(true);
-            given(tokenGenerator.setUpRefreshTokenExpiration(any())).willReturn(new OAuthTokenDto("accessToken", 1000, "refreshToken", 1000, "Bearer"));
+            given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto("accessToken", 1000, "refreshToken", 1000, "Bearer"));
             given(tokenGenerator.create(eq(memberId), eq(provider), any())).willReturn(new ServiceTokenDto("accessToken", "refreshToken"));
 
             assertThatCode(() -> authService.reissue(serviceToken))

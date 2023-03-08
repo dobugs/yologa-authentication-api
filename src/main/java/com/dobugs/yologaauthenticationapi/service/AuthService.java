@@ -55,7 +55,7 @@ public class AuthService {
         final OAuthTokenResponse oAuthTokenResponse = oAuthConnector.requestToken(authorizationCode, redirectUrl);
         final OAuthUserResponse oAuthUserResponse = oAuthConnector.requestUserInfo(oAuthTokenResponse.tokenType(), oAuthTokenResponse.accessToken());
 
-        final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(oAuthTokenResponse);
+        final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpExpiration(oAuthTokenResponse);
         final Long memberId = saveMember(provider, oAuthTokenDto, oAuthUserResponse);
         final ServiceTokenDto serviceTokenDto = tokenGenerator.create(memberId, provider, oAuthTokenDto);
 
@@ -69,7 +69,7 @@ public class AuthService {
 
         validateTheExistenceOfRefreshToken(userTokenResponse.memberId(), refreshToken);
         final OAuthTokenResponse response = oAuthConnector.requestAccessToken(refreshToken);
-        final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(response);
+        final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpExpiration(response);
         restoreRefreshToken(userTokenResponse.memberId(), oAuthTokenDto.refreshToken());
         final ServiceTokenDto serviceTokenDto = tokenGenerator.create(userTokenResponse.memberId(), userTokenResponse.provider(), oAuthTokenDto);
         return new ServiceTokenResponse(serviceTokenDto.accessToken(), serviceTokenDto.refreshToken());
@@ -106,7 +106,7 @@ public class AuthService {
     private void saveMemberToRedis(final String provider, final OAuthTokenDto oAuthTokenDto, final Member savedMember) {
         final OAuthToken oAuthToken = OAuthToken.login(
             savedMember.getId(), Provider.findOf(provider),
-            oAuthTokenDto.refreshToken(), (long) oAuthTokenDto.refreshTokenExpiresIn()
+            oAuthTokenDto.refreshToken(), oAuthTokenDto.refreshTokenExpiresIn()
         );
         tokenRepository.save(oAuthToken);
     }

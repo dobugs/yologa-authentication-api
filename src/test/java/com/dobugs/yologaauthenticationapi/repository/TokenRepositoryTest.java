@@ -26,6 +26,8 @@ import com.dobugs.yologaauthenticationapi.domain.Provider;
 @DisplayName("Token 레포지토리 테스트")
 class TokenRepositoryTest {
 
+    private static final TimeUnit TIME_UNIT = TimeUnit.MILLISECONDS;
+
     @Autowired
     private StringRedisTemplate redisTemplate;
     private HashOperations<String, Object, Object> operations;
@@ -43,6 +45,9 @@ class TokenRepositoryTest {
     public class save {
 
         private static final long MEMBER_ID = 0L;
+        private static final Provider PROVIDER = Provider.GOOGLE;
+        private static final String REFRESH_TOKEN = "refreshToken";
+        private static final long EXPIRATION = 1_000L;
 
         @AfterEach
         void tearDown() {
@@ -52,7 +57,7 @@ class TokenRepositoryTest {
         @DisplayName("OAuthToken 을 저장한다")
         @Test
         void success() {
-            final OAuthToken oAuthToken = OAuthToken.login(MEMBER_ID, Provider.GOOGLE, "refreshToken", 1L);
+            final OAuthToken oAuthToken = OAuthToken.login(MEMBER_ID, PROVIDER, REFRESH_TOKEN, EXPIRATION);
 
             assertThatCode(() -> tokenRepository.save(oAuthToken))
                 .doesNotThrowAnyException();
@@ -61,11 +66,9 @@ class TokenRepositoryTest {
         @DisplayName("저장한 OAuthToken 은 만료 시간 이후에 자동 제거된다")
         @Test
         void expire() throws InterruptedException {
-            final long expiration = 1L;
-
-            final OAuthToken oAuthToken = OAuthToken.login(MEMBER_ID, Provider.GOOGLE, "refreshToken", expiration);
+            final OAuthToken oAuthToken = OAuthToken.login(MEMBER_ID, PROVIDER, REFRESH_TOKEN, EXPIRATION);
             tokenRepository.save(oAuthToken);
-            TimeUnit.SECONDS.sleep(expiration);
+            TIME_UNIT.sleep(EXPIRATION);
 
             final Boolean hasKey = operations.hasKey(String.valueOf(MEMBER_ID), OAuthToken.KEY_NAME_OF_REFRESH_TOKEN);
 
@@ -113,13 +116,13 @@ class TokenRepositoryTest {
         @DisplayName("재저장한 refresh token 은 이전에 설정되어 있던 만료 시간으로 재설정된다")
         @Test
         void expire() {
-            final long expected = 10L;
+            final long expected = 1_000L * 10;
             operations.put(String.valueOf(MEMBER_ID), OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, "beforeRefreshToken");
-            redisTemplate.expire(String.valueOf(MEMBER_ID), expected, TimeUnit.SECONDS);
+            redisTemplate.expire(String.valueOf(MEMBER_ID), expected, TIME_UNIT);
 
             tokenRepository.saveRefreshToken(MEMBER_ID, REFRESH_TOKEN);
 
-            final Long actual = redisTemplate.getExpire(String.valueOf(MEMBER_ID));
+            final Long actual = redisTemplate.getExpire(String.valueOf(MEMBER_ID), TIME_UNIT);
             assertThat(actual)
                 .isLessThanOrEqualTo(expected)
                 .isGreaterThan(0L);
