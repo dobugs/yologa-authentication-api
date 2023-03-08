@@ -9,8 +9,10 @@ import org.springframework.stereotype.Component;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
+import com.dobugs.yologaauthenticationapi.support.dto.request.OAuthLogoutRequest;
 import com.dobugs.yologaauthenticationapi.support.dto.response.KakaoTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.KakaoUserResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthLogoutResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthUserResponse;
 import com.dobugs.yologaauthenticationapi.support.exception.OAuthConnectionException;
@@ -52,8 +54,8 @@ public class KakaoConnector implements OAuthConnector {
     }
 
     @Override
-    public void logout(final String token) {
-
+    public void logout(final OAuthLogoutRequest oAuthLogoutRequest) {
+        connectForLogout(oAuthLogoutRequest.accessToken(), oAuthLogoutRequest.tokenType());
     }
 
     private KakaoTokenResponse connectForToken(final String authorizationCode, final String redirectUrl) {
@@ -88,6 +90,15 @@ public class KakaoConnector implements OAuthConnector {
         validateConnectionResponseIsSuccess(response);
         return Optional.ofNullable(response.getBody())
             .orElseThrow(() -> new OAuthConnectionException("kakao 에서 Access Token 을 재발급 받는 과정에서 연결에 실패하였습니다."));
+    }
+
+    private void connectForLogout(final String accessToken, final String tokenType) {
+        final ResponseEntity<OAuthLogoutResponse> response = REST_TEMPLATE.postForEntity(
+            kakaoProvider.generateLogoutUrl(accessToken),
+            kakaoProvider.createLogoutEntity(tokenType, accessToken),
+            OAuthLogoutResponse.class
+        );
+        validateConnectionResponseIsSuccess(response);
     }
 
     private String selectRefreshToken(final String refreshToken, final KakaoTokenResponse response) {

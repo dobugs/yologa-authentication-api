@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
+import com.dobugs.yologaauthenticationapi.support.dto.request.OAuthLogoutRequest;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleUserResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthLogoutResponse;
@@ -54,8 +55,8 @@ public class GoogleConnector implements OAuthConnector {
     }
 
     @Override
-    public void logout(final String token) {
-        connectForLogout(token);
+    public void logout(final OAuthLogoutRequest oAuthLogoutRequest) {
+        connectForLogout(oAuthLogoutRequest.refreshToken(), oAuthLogoutRequest.tokenType());
     }
 
     private GoogleTokenResponse connectForToken(final String authorizationCode, final String redirectUrl) {
@@ -92,10 +93,10 @@ public class GoogleConnector implements OAuthConnector {
             .orElseThrow(() -> new OAuthConnectionException("Google 에서 Access Token 을 재발급 받는 과정에서 연결에 실패하였습니다."));
     }
 
-    private void connectForLogout(final String token) {
+    private void connectForLogout(final String refreshToken, final String tokenType) {
         final ResponseEntity<OAuthLogoutResponse> response = REST_TEMPLATE.postForEntity(
-            googleProvider.generateLogoutUrl(token),
-            googleProvider.createLogoutEntity(),
+            googleProvider.generateLogoutUrl(refreshToken),
+            googleProvider.createLogoutEntity(tokenType, refreshToken),
             OAuthLogoutResponse.class
         );
         validateConnectionResponseIsSuccess(response);

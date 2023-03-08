@@ -22,6 +22,7 @@ public class KakaoProvider implements OAuthProvider {
     private final String authUrl;
     private final String accessTokenUrl;
     private final String userInfoUrl;
+    private final String logoutUrl;
     private final String grantType;
 
     public KakaoProvider(
@@ -29,12 +30,14 @@ public class KakaoProvider implements OAuthProvider {
         @Value("${oauth2.kakao.url.auth}") final String authUrl,
         @Value("${oauth2.kakao.url.token}") final String accessTokenUrl,
         @Value("${oauth2.kakao.url.userinfo}") final String userInfoUrl,
+        @Value("${oauth2.kakao.url.logout}") final String logoutUrl,
         @Value("${oauth2.kakao.grant-type}") final String grantType
     ) {
         this.clientId = clientId;
         this.authUrl = authUrl;
         this.accessTokenUrl = accessTokenUrl;
         this.userInfoUrl = userInfoUrl;
+        this.logoutUrl = logoutUrl;
         this.grantType = grantType;
     }
 
@@ -74,7 +77,7 @@ public class KakaoProvider implements OAuthProvider {
 
     @Override
     public String generateLogoutUrl(final String token) {
-        return null;
+        return logoutUrl;
     }
 
     @Override
@@ -93,8 +96,8 @@ public class KakaoProvider implements OAuthProvider {
     }
 
     @Override
-    public HttpEntity<MultiValueMap<String, String>> createLogoutEntity() {
-        return new HttpEntity<>(createTokenHeaders());
+    public HttpEntity<MultiValueMap<String, String>> createLogoutEntity(final String tokenType, final String accessToken) {
+        return new HttpEntity<>(createUserHeaders(tokenType, accessToken));
     }
 
     private HttpHeaders createTokenHeaders() {

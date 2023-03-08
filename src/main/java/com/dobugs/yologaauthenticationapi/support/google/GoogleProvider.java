@@ -111,7 +111,7 @@ public class GoogleProvider implements OAuthProvider {
     }
 
     @Override
-    public HttpEntity<MultiValueMap<String, String>> createLogoutEntity() {
+    public HttpEntity<MultiValueMap<String, String>> createLogoutEntity(final String tokenType, final String refreshToken) {
         return new HttpEntity<>(createTokenHeaders());
     }
 

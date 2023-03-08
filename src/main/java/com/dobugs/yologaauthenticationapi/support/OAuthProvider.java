@@ -24,7 +24,7 @@ public interface OAuthProvider {
 
     HttpEntity<MultiValueMap<String, String>> createAccessTokenEntity();
 
-    HttpEntity<MultiValueMap<String, String>> createLogoutEntity();
+    HttpEntity<MultiValueMap<String, String>> createLogoutEntity(String tokenType, String token);
 
     default String concatParams(final Map<String, String> params) {
         return params.entrySet()

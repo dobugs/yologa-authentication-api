@@ -78,6 +78,7 @@ class MemberServiceTest {
 
         private static final Long MEMBER_ID = 0L;
         private static final String PROVIDER = Provider.GOOGLE.getName();
+        private static final String TOKEN_TYPE = "Bearer";
         private static final String ACCESS_TOKEN = "accessToken";
 
         private String serviceToken;
@@ -85,7 +86,7 @@ class MemberServiceTest {
         @BeforeEach
         void setUp() {
             serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
         }
 
         @DisplayName("JWT 를 이용하여 사용자 정보를 조회한다")
@@ -123,6 +124,7 @@ class MemberServiceTest {
 
         private static final Long MEMBER_ID = 0L;
         private static final String PROVIDER = Provider.GOOGLE.getName();
+        private static final String TOKEN_TYPE = "Bearer";
         private static final String ACCESS_TOKEN = "accessToken";
         private static final String NICKNAME = "유콩";
         private static final String PHONE_NUMBER = "010-0000-0000";
@@ -133,7 +135,7 @@ class MemberServiceTest {
         @BeforeEach
         void setUp() {
             serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
 
             request = new MemberUpdateRequest(NICKNAME, PHONE_NUMBER);
         }
@@ -175,6 +177,7 @@ class MemberServiceTest {
 
         private static final Long MEMBER_ID = 0L;
         private static final String PROVIDER = Provider.GOOGLE.getName();
+        private static final String TOKEN_TYPE = "Bearer";
         private static final String ACCESS_TOKEN = "accessToken";
 
         private String serviceToken;
@@ -182,7 +185,7 @@ class MemberServiceTest {
         @BeforeEach
         void setUp() {
             serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
         }
 
         @DisplayName("탈퇴한다")

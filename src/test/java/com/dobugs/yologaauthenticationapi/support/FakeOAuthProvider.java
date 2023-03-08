@@ -72,7 +72,7 @@ public class FakeOAuthProvider implements OAuthProvider {
     }
 
     @Override
-    public HttpEntity<MultiValueMap<String, String>> createLogoutEntity() {
+    public HttpEntity<MultiValueMap<String, String>> createLogoutEntity(final String tokenType, final String token) {
         return new HttpEntity<>(createTokenHeaders());
     }
 

@@ -23,6 +23,7 @@ public class TokenGenerator {
 
     private static final String PAYLOAD_NAME_OF_MEMBER_ID = "memberId";
     private static final String PAYLOAD_NAME_OF_PROVIDER = "provider";
+    private static final String PAYLOAD_NAME_OF_TOKEN_TYPE = "tokenType";
     private static final String PAYLOAD_NAME_OF_TOKEN = "token";
 
     private final SecretKey secretKey;
@@ -40,8 +41,8 @@ public class TokenGenerator {
     }
 
     public ServiceTokenDto create(final Long memberId, final String provider, final OAuthTokenDto oAuthTokenDto) {
-        final String accessToken = createToken(memberId, provider, oAuthTokenDto.accessToken(), oAuthTokenDto.expiresIn());
-        final String refreshToken = createToken(memberId, provider, oAuthTokenDto.refreshToken(), oAuthTokenDto.refreshTokenExpiresIn());
+        final String accessToken = createToken(memberId, provider, oAuthTokenDto.tokenType(), oAuthTokenDto.accessToken(), oAuthTokenDto.expiresIn());
+        final String refreshToken = createToken(memberId, provider, oAuthTokenDto.tokenType(), oAuthTokenDto.refreshToken(), oAuthTokenDto.refreshTokenExpiresIn());
         return new ServiceTokenDto(accessToken, refreshToken);
     }
 
@@ -49,9 +50,10 @@ public class TokenGenerator {
         final String jwt = serviceToken.replace("Bearer ", "");
         final Claims claims = extractClaims(jwt);
         final Long memberId = extractMemberId(claims);
-        final String token = extractToken(claims);
         final String provider = extractProvider(claims);
-        return new UserTokenResponse(memberId, provider, token);
+        final String tokenType = extractTokenType(claims);
+        final String token = extractToken(claims);
+        return new UserTokenResponse(memberId, provider, tokenType, token);
     }
 
     public OAuthTokenDto setUpExpiration(final OAuthTokenResponse oAuthTokenResponse) {
@@ -62,13 +64,14 @@ public class TokenGenerator {
         );
     }
 
-    private String createToken(final Long memberId, final String provider, final String token, final long expiresIn) {
+    private String createToken(final Long memberId, final String provider, final String tokenType, final String token, final long expiresIn) {
         final Date issued = new Date();
         final Date expiration = new Date(issued.getTime() + expiresIn);
         return Jwts.builder()
             .claim(PAYLOAD_NAME_OF_MEMBER_ID, memberId)
-            .claim(PAYLOAD_NAME_OF_TOKEN, token)
             .claim(PAYLOAD_NAME_OF_PROVIDER, provider)
+            .claim(PAYLOAD_NAME_OF_TOKEN_TYPE, tokenType)
+            .claim(PAYLOAD_NAME_OF_TOKEN, token)
             .setIssuedAt(issued)
             .setExpiration(expiration)
             .signWith(secretKey, SignatureAlgorithm.HS256)
@@ -82,6 +85,10 @@ public class TokenGenerator {
 
     private String extractProvider(final Claims claims) {
         return (String) claims.get(PAYLOAD_NAME_OF_PROVIDER);
+    }
+
+    private String extractTokenType(final Claims claims) {
+        return (String) claims.get(PAYLOAD_NAME_OF_TOKEN_TYPE);
     }
 
     private String extractToken(final Claims claims) {

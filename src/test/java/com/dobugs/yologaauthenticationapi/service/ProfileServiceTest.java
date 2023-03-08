@@ -37,6 +37,7 @@ class ProfileServiceTest {
 
     private static final Long MEMBER_ID = 0L;
     private static final String PROVIDER = Provider.GOOGLE.getName();
+    private static final String TOKEN_TYPE = "Bearer";
     private static final String ACCESS_TOKEN = "accessToken";
 
     private ProfileService profileService;
@@ -80,7 +81,7 @@ class ProfileServiceTest {
         @Test
         void success() {
             final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
 
             final Member member = new Member("oauthId");
             member.updateProfile(new Resource(RESOURCE_NAME, ResourceType.PROFILE, "http://localhost:8080/profile.png"));
@@ -97,7 +98,7 @@ class ProfileServiceTest {
         @Test
         void profileIsNull() {
             final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
 
             final Member member = new Member("oauthId");
             given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.of(member));
@@ -118,7 +119,7 @@ class ProfileServiceTest {
             );
 
             final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
 
             assertThatThrownBy(() -> profileService.update(serviceToken, newProfile))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -129,7 +130,7 @@ class ProfileServiceTest {
         @Test
         void memberIsNotExist() {
             final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
             given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> profileService.update(serviceToken, newProfile))
@@ -160,7 +161,7 @@ class ProfileServiceTest {
         @Test
         void success() {
             final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
 
             final Member member = new Member("oauthId");
             member.updateProfile(new Resource(RESOURCE_NAME, ResourceType.PROFILE, "http://localhost:8080/profile.png"));
@@ -175,7 +176,7 @@ class ProfileServiceTest {
         @Test
         void profileIsNull() {
             final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
 
             final Member member = new Member("oauthId");
             given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.of(member));
@@ -189,7 +190,7 @@ class ProfileServiceTest {
         @Test
         void memberIsNotExist() {
             final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, ACCESS_TOKEN));
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
             given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> profileService.init(serviceToken))
