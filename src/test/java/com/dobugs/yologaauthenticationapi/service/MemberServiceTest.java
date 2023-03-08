@@ -23,8 +23,7 @@ import com.dobugs.yologaauthenticationapi.service.dto.request.MemberUpdateReques
 import com.dobugs.yologaauthenticationapi.service.dto.response.MemberResponse;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
-
-import io.jsonwebtoken.Jwts;
+import com.dobugs.yologaauthenticationapi.support.fixture.ServiceTokenFixture;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Member 서비스 테스트")
@@ -85,7 +84,12 @@ class MemberServiceTest {
 
         @BeforeEach
         void setUp() {
-            serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
+            serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(PROVIDER)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .build();
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
         }
 
@@ -108,14 +112,6 @@ class MemberServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("존재하지 않는 사용자입니다.");
         }
-
-        private String createToken(final Long memberId, final String provider, final String token) {
-            return Jwts.builder()
-                .claim("memberId", memberId)
-                .claim("provider", provider)
-                .claim("token", token)
-                .compact();
-        }
     }
 
     @DisplayName("내 정보 수정 테스트")
@@ -134,7 +130,12 @@ class MemberServiceTest {
 
         @BeforeEach
         void setUp() {
-            serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
+            serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(PROVIDER)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .build();
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
 
             request = new MemberUpdateRequest(NICKNAME, PHONE_NUMBER);
@@ -161,14 +162,6 @@ class MemberServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("존재하지 않는 사용자입니다.");
         }
-
-        private String createToken(final Long memberId, final String provider, final String token) {
-            return Jwts.builder()
-                .claim("memberId", memberId)
-                .claim("provider", provider)
-                .claim("token", token)
-                .compact();
-        }
     }
 
     @DisplayName("탈퇴하기 테스트")
@@ -184,7 +177,12 @@ class MemberServiceTest {
 
         @BeforeEach
         void setUp() {
-            serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN);
+            serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(PROVIDER)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .build();
             given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
         }
 
@@ -205,14 +203,6 @@ class MemberServiceTest {
             assertThatThrownBy(() -> memberService.delete(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("존재하지 않는 사용자입니다.");
-        }
-
-        private String createToken(final Long memberId, final String provider, final String token) {
-            return Jwts.builder()
-                .claim("memberId", memberId)
-                .claim("provider", provider)
-                .claim("token", token)
-                .compact();
         }
     }
 }

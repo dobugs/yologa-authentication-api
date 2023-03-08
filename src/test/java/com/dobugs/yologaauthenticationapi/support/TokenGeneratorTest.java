@@ -19,9 +19,9 @@ import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.fixture.ServiceTokenFixture;
 
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -32,8 +32,8 @@ class TokenGeneratorTest {
 
     private static final String SECRET_KEY_VALUE = "secretKey".repeat(10);
     private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_VALUE.getBytes(StandardCharsets.UTF_8));
-    private static final long ACCESS_TOKEN_EXPIRES_IN = 1000;
-    private static final long REFRESH_TOKEN_EXPIRES_IN = 1000;
+    private static final long ACCESS_TOKEN_EXPIRES_IN = 1_000_000;
+    private static final long REFRESH_TOKEN_EXPIRES_IN = 1_000_000;
 
     private TokenGenerator tokenGenerator;
 
@@ -60,11 +60,11 @@ class TokenGeneratorTest {
 
             final ServiceTokenDto serviceTokenDto = tokenGenerator.create(MEMBER_ID, PROVIDER, oAuthTokenDto);
 
-            final Integer memberId = extractMemberId(serviceTokenDto.accessToken());
-            final String accessToken = extract(serviceTokenDto.accessToken(), "token");
-            final String refreshToken = extract(serviceTokenDto.refreshToken(), "token");
-            final String provider = extract(serviceTokenDto.accessToken(), "provider");
-            final String tokenType = extract(serviceTokenDto.accessToken(), "tokenType");
+            final Integer memberId = ServiceTokenFixture.extractMemberId(serviceTokenDto.accessToken(), SECRET_KEY);
+            final String accessToken = ServiceTokenFixture.extractToken(serviceTokenDto.accessToken(), SECRET_KEY);
+            final String refreshToken = ServiceTokenFixture.extractToken(serviceTokenDto.refreshToken(), SECRET_KEY);
+            final String provider = ServiceTokenFixture.extractProvider(serviceTokenDto.accessToken(), SECRET_KEY);
+            final String tokenType = ServiceTokenFixture.extractTokenType(serviceTokenDto.accessToken(), SECRET_KEY);
             assertAll(
                 () -> assertThat(memberId).isEqualTo(MEMBER_ID),
                 () -> assertThat(accessToken).isEqualTo(ACCESS_TOKEN),
@@ -72,24 +72,6 @@ class TokenGeneratorTest {
                 () -> assertThat(provider).isEqualTo(PROVIDER),
                 () -> assertThat(tokenType).isEqualTo(TOKEN_TYPE)
             );
-        }
-
-        private Integer extractMemberId(final String createdToken) {
-            return (Integer) Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
-                .build()
-                .parseClaimsJws(createdToken)
-                .getBody()
-                .get("memberId");
-        }
-
-        private String extract(final String createdToken, final String payloadName) {
-            return (String) Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
-                .build()
-                .parseClaimsJws(createdToken)
-                .getBody()
-                .get(payloadName);
         }
     }
 
@@ -106,7 +88,15 @@ class TokenGeneratorTest {
         @DisplayName("token 을 추출한다")
         @Test
         void success() {
-            final String serviceToken = createToken(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN, EXPIRATION);
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(PROVIDER)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .expiration(EXPIRATION)
+                .secretKey(SECRET_KEY)
+                .algorithm(SignatureAlgorithm.HS256)
+                .build();
 
             final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
 
@@ -129,13 +119,13 @@ class TokenGeneratorTest {
         @DisplayName("지원하지 않는 JWT 일 경우 예외가 발생한다")
         @Test
         void JWTIsUnsupported() {
-            final String serviceToken = Jwts.builder()
-                .claim("memberId", MEMBER_ID)
-                .claim("provider", PROVIDER)
-                .claim("tokenType", TOKEN_TYPE)
-                .claim("token", ACCESS_TOKEN)
-                .setExpiration(EXPIRATION)
-                .compact();
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(PROVIDER)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .expiration(EXPIRATION)
+                .build();
 
             assertThatThrownBy(() -> tokenGenerator.extract(serviceToken))
                 .isInstanceOf(UnsupportedJwtException.class);
@@ -145,14 +135,15 @@ class TokenGeneratorTest {
         @Test
         void signatureIsDifferent() {
             final SecretKey differentSecretKey = Keys.hmacShaKeyFor("differentKey".repeat(10).getBytes(StandardCharsets.UTF_8));
-            final String serviceToken = Jwts.builder()
-                .claim("memberId", MEMBER_ID)
-                .claim("provider", PROVIDER)
-                .claim("tokenType", TOKEN_TYPE)
-                .claim("token", ACCESS_TOKEN)
-                .setExpiration(EXPIRATION)
-                .signWith(differentSecretKey, SignatureAlgorithm.HS256)
-                .compact();
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(PROVIDER)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .expiration(EXPIRATION)
+                .secretKey(differentSecretKey)
+                .algorithm(SignatureAlgorithm.HS256)
+                .build();
 
             assertThatThrownBy(() -> tokenGenerator.extract(serviceToken))
                 .isInstanceOf(SignatureException.class);
@@ -162,21 +153,18 @@ class TokenGeneratorTest {
         @Test
         void JWTIsExpired() {
             final Date expiration = new Date(new Date().getTime() - 1);
-            final String serviceToken = createToken(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN, expiration);
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(PROVIDER)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .expiration(expiration)
+                .secretKey(SECRET_KEY)
+                .algorithm(SignatureAlgorithm.HS256)
+                .build();
 
             assertThatThrownBy(() -> tokenGenerator.extract(serviceToken))
                 .isInstanceOf(ExpiredJwtException.class);
-        }
-
-        private String createToken(final Long memberId, final String provider, final String tokenType, final String token, final Date expiration) {
-            return Jwts.builder()
-                .claim("memberId", memberId)
-                .claim("provider", provider)
-                .claim("tokenType", tokenType)
-                .claim("token", token)
-                .setExpiration(expiration)
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
-                .compact();
         }
     }
 
