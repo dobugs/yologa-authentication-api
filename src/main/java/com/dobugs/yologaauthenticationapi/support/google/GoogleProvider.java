@@ -89,7 +89,7 @@ public class GoogleProvider implements OAuthProvider {
     }
 
     @Override
-    public String generateRevokeToken(final String token) {
+    public String generateLogoutUrl(final String token) {
         final Map<String, String> params = new HashMap<>();
         params.put("token", token);
         return logoutUrl + "?" + concatParams(params);

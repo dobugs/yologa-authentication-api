@@ -16,7 +16,7 @@ public interface OAuthProvider {
 
     String generateAccessTokenUrl(String refreshToken);
 
-    String generateRevokeToken(String token);
+    String generateLogoutUrl(String token);
 
     HttpEntity<MultiValueMap<String, String>> createTokenEntity();
 

@@ -52,7 +52,7 @@ public class FakeOAuthProvider implements OAuthProvider {
     }
 
     @Override
-    public String generateRevokeToken(final String token) {
+    public String generateLogoutUrl(final String token) {
         return null;
     }
 
