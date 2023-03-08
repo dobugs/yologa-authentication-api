@@ -1,7 +1,6 @@
 package com.dobugs.yologaauthenticationapi.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.util.HashMap;
@@ -59,8 +58,28 @@ class TokenRepositoryTest {
         void success() {
             final OAuthToken oAuthToken = OAuthToken.login(MEMBER_ID, PROVIDER, REFRESH_TOKEN, EXPIRATION);
 
-            assertThatCode(() -> tokenRepository.save(oAuthToken))
-                .doesNotThrowAnyException();
+            tokenRepository.save(oAuthToken);
+
+            final String key = String.valueOf(MEMBER_ID);
+            assertAll(
+                () -> assertThat(operations.get(key, OAuthToken.KEY_NAME_OF_PROVIDER)).isEqualTo(PROVIDER.getName()),
+                () -> assertThat(operations.get(key, OAuthToken.KEY_NAME_OF_REFRESH_TOKEN)).isEqualTo(REFRESH_TOKEN)
+            );
+        }
+
+        @DisplayName("재저장 시 만료 시간을 재설정한다")
+        @Test
+        void alreadySaved() {
+            final long restoredExpiration = EXPIRATION * 100;
+
+            operations.put(String.valueOf(MEMBER_ID), OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, REFRESH_TOKEN);
+            redisTemplate.expire(String.valueOf(MEMBER_ID), EXPIRATION, TIME_UNIT);
+
+            final OAuthToken oAuthToken = OAuthToken.login(MEMBER_ID, PROVIDER, REFRESH_TOKEN, restoredExpiration);
+            tokenRepository.save(oAuthToken);
+
+            final Long savedExpiration = redisTemplate.getExpire(String.valueOf(MEMBER_ID), TIME_UNIT);
+            assertThat(savedExpiration).isGreaterThan(EXPIRATION);
         }
 
         @DisplayName("저장한 OAuthToken 은 만료 시간 이후에 자동 제거된다")
@@ -81,6 +100,7 @@ class TokenRepositoryTest {
     public class saveRefreshToken {
 
         private static final long MEMBER_ID = 0L;
+        private static final Provider PROVIDER = Provider.GOOGLE;
         private static final String REFRESH_TOKEN = "refresh token";
 
         @AfterEach
@@ -92,7 +112,7 @@ class TokenRepositoryTest {
         @Test
         void restore() {
             final HashMap<String, Object> value = new HashMap<>();
-            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, Provider.GOOGLE.getName());
+            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, PROVIDER.getName());
             value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, "beforeRefreshToken");
             operations.putAll(String.valueOf(MEMBER_ID), value);
 
@@ -134,12 +154,14 @@ class TokenRepositoryTest {
     public class delete {
 
         private static final long MEMBER_ID = 0L;
+        private static final Provider PROVIDER = Provider.GOOGLE;
+        private static final String REFRESH_TOKEN = "refresh token";
 
         @BeforeEach
         void setUp() {
             final HashMap<String, Object> value = new HashMap<>();
-            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, Provider.GOOGLE.getName());
-            value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, "refreshToken");
+            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, PROVIDER.getName());
+            value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, REFRESH_TOKEN);
 
             final HashOperations<String, Object, Object> operations = redisTemplate.opsForHash();
             operations.putAll(String.valueOf(MEMBER_ID), value);
@@ -164,12 +186,13 @@ class TokenRepositoryTest {
     public class exist {
 
         private static final long EXIST_MEMBER_ID = 0L;
+        private static final Provider PROVIDER = Provider.GOOGLE;
         private static final String EXIST_REFRESH_TOKEN = "refreshToken";
 
         @BeforeEach
         void setUp() {
             final HashMap<String, Object> value = new HashMap<>();
-            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, Provider.GOOGLE.getName());
+            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, PROVIDER.getName());
             value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, EXIST_REFRESH_TOKEN);
 
             final HashOperations<String, Object, Object> operations = redisTemplate.opsForHash();
@@ -200,12 +223,13 @@ class TokenRepositoryTest {
     public class existRefreshToken {
 
         private static final long EXIST_MEMBER_ID = 0L;
+        private static final Provider PROVIDER = Provider.GOOGLE;
         private static final String EXIST_REFRESH_TOKEN = "refreshToken";
 
         @BeforeEach
         void setUp() {
             final HashMap<String, Object> value = new HashMap<>();
-            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, Provider.GOOGLE.getName());
+            value.put(OAuthToken.KEY_NAME_OF_PROVIDER, PROVIDER.getName());
             value.put(OAuthToken.KEY_NAME_OF_REFRESH_TOKEN, EXIST_REFRESH_TOKEN);
 
             final HashOperations<String, Object, Object> operations = redisTemplate.opsForHash();
