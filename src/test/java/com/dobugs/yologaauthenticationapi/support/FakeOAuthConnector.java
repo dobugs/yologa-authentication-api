@@ -38,6 +38,5 @@ public class FakeOAuthConnector implements OAuthConnector {
 
     @Override
     public void logout(final OAuthLogoutRequest oAuthLogoutRequest) {
-
     }
 }
