@@ -16,6 +16,7 @@ public class FakeOAuthProvider implements OAuthProvider {
     private static final String AUTH_URL = "authUrl";
     private static final String TOKEN_URL = "tokenUrl";
     private static final String USER_INFO_URL = "userInfoUrl";
+    private static final String LOGOUT_URL = "logoutUrl";
 
     @Override
     public String generateOAuthUrl(final String redirectUrl, final String referrer) {
@@ -52,6 +53,11 @@ public class FakeOAuthProvider implements OAuthProvider {
     }
 
     @Override
+    public String generateLogoutUrl(final String token) {
+        return LOGOUT_URL;
+    }
+
+    @Override
     public HttpEntity<MultiValueMap<String, String>> createTokenEntity() {
         return new HttpEntity<>(createTokenHeaders());
     }
@@ -63,6 +69,11 @@ public class FakeOAuthProvider implements OAuthProvider {
 
     @Override
     public HttpEntity<MultiValueMap<String, String>> createAccessTokenEntity() {
+        return new HttpEntity<>(createTokenHeaders());
+    }
+
+    @Override
+    public HttpEntity<MultiValueMap<String, String>> createLogoutEntity(final String tokenType, final String token) {
         return new HttpEntity<>(createTokenHeaders());
     }
 

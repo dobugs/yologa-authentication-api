@@ -2,6 +2,7 @@ package com.dobugs.yologaauthenticationapi.support;
 
 import org.springframework.web.client.RestTemplate;
 
+import com.dobugs.yologaauthenticationapi.support.dto.request.OAuthLogoutRequest;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthUserResponse;
 
@@ -16,4 +17,6 @@ public interface OAuthConnector {
     OAuthUserResponse requestUserInfo(String tokenType, String accessToken);
 
     OAuthTokenResponse requestAccessToken(String refreshToken);
+
+    void logout(OAuthLogoutRequest oAuthLogoutRequest);
 }

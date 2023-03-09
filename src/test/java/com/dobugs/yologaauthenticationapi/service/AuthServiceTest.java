@@ -21,6 +21,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.dobugs.yologaauthenticationapi.domain.Member;
+import com.dobugs.yologaauthenticationapi.domain.Provider;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
@@ -33,8 +34,7 @@ import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
-
-import io.jsonwebtoken.Jwts;
+import com.dobugs.yologaauthenticationapi.support.fixture.ServiceTokenFixture;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Auth 서비스 테스트")
@@ -93,16 +93,19 @@ class AuthServiceTest {
 
         private static final String ACCESS_TOKEN = "accessToken";
         private static final String REFRESH_TOKEN = "refreshToken";
+        private static final String TOKEN_TYPE = "Bearer";
+        private static final int EXPIRES_IN = 1_000_000;
+        private static final String AUTHORIZATION_CODE = "authorizationCode";
 
         @DisplayName("로그인한다")
         @ParameterizedTest
         @ValueSource(strings = {"google", "kakao"})
         void success(final String provider) {
             final OAuthRequest request = new OAuthRequest(provider, REDIRECT_URL, REFERRER_URL);
-            final OAuthCodeRequest codeRequest = new OAuthCodeRequest("authorizationCode");
+            final OAuthCodeRequest codeRequest = new OAuthCodeRequest(AUTHORIZATION_CODE);
 
             given(memberRepository.findByOauthId(any())).willReturn(Optional.of(new Member("oauthId")));
-            given(tokenGenerator.setUpRefreshTokenExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, 1000, REFRESH_TOKEN, 1000, "Bearer"));
+            given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, TOKEN_TYPE));
             given(tokenGenerator.create(any(), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
             final ServiceTokenResponse response = authService.login(request, codeRequest);
@@ -116,9 +119,10 @@ class AuthServiceTest {
         @DisplayName("존재하지 않는 provider 를 요청할 경우 예외가 발생한다")
         @Test
         void notExistProvider() {
-            final String provider = "notExistProvider";
-            final OAuthRequest request = new OAuthRequest(provider, REDIRECT_URL, REFERRER_URL);
-            final OAuthCodeRequest codeRequest = new OAuthCodeRequest("authorizationCode");
+            final String notExistProvider = "notExistProvider";
+
+            final OAuthRequest request = new OAuthRequest(notExistProvider, REDIRECT_URL, REFERRER_URL);
+            final OAuthCodeRequest codeRequest = new OAuthCodeRequest(AUTHORIZATION_CODE);
 
             assertThatThrownBy(() -> authService.login(request, codeRequest))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -130,10 +134,10 @@ class AuthServiceTest {
         @ValueSource(strings = {"google", "kakao"})
         void register(final String provider) {
             final OAuthRequest request = new OAuthRequest(provider, REDIRECT_URL, REFERRER_URL);
-            final OAuthCodeRequest codeRequest = new OAuthCodeRequest("authorizationCode");
+            final OAuthCodeRequest codeRequest = new OAuthCodeRequest(AUTHORIZATION_CODE);
 
             given(memberRepository.findByOauthId(any())).willReturn(Optional.empty());
-            given(tokenGenerator.setUpRefreshTokenExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, 1000, REFRESH_TOKEN, 1000, "Bearer"));
+            given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, TOKEN_TYPE));
             given(tokenGenerator.create(any(), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
             final ServiceTokenResponse response = authService.login(request, codeRequest);
@@ -149,19 +153,27 @@ class AuthServiceTest {
     @Nested
     public class reissue {
 
+        private static final Long MEMBER_ID = 0L;
+        private static final String TOKEN_TYPE = "Bearer";
+        private static final String ACCESS_TOKEN = "accessToken";
+        private static final String REFRESH_TOKEN = "refreshToken";
+        private static final int EXPIRES_IN = 1_000_000;
+
         @DisplayName("Access Token 을 재발급한다")
         @ParameterizedTest
         @ValueSource(strings = {"google", "kakao"})
         void success(final String provider) {
-            final long memberId = 0L;
-            final String refreshToken = "refreshToken";
-            final String serviceToken = createToken(memberId, provider, refreshToken);
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(provider)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .build();
 
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(memberId, provider, refreshToken));
-            given(tokenRepository.exist(memberId)).willReturn(true);
-            given(tokenRepository.existRefreshToken(memberId, refreshToken)).willReturn(true);
-            given(tokenGenerator.setUpRefreshTokenExpiration(any())).willReturn(new OAuthTokenDto("accessToken", 1000, "refreshToken", 1000, "Bearer"));
-            given(tokenGenerator.create(eq(memberId), eq(provider), any())).willReturn(new ServiceTokenDto("accessToken", "refreshToken"));
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, provider, TOKEN_TYPE, REFRESH_TOKEN));
+            given(tokenRepository.findRefreshToken(MEMBER_ID)).willReturn(Optional.of(REFRESH_TOKEN));
+            given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, TOKEN_TYPE));
+            given(tokenGenerator.create(eq(MEMBER_ID), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
             assertThatCode(() -> authService.reissue(serviceToken))
                 .doesNotThrowAnyException();
@@ -170,12 +182,15 @@ class AuthServiceTest {
         @DisplayName("존재하지 않는 provider 를 요청할 경우 예외가 발생한다")
         @Test
         void notExistProvider() {
-            final long memberId = 0L;
-            final String provider = "notExistProvider";
-            final String refreshToken = "refreshToken";
-            final String serviceToken = createToken(memberId, provider, refreshToken);
+            final String notExistProvider = "notExistProvider";
 
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(memberId, provider, refreshToken));
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(notExistProvider)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .build();
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, notExistProvider, TOKEN_TYPE, REFRESH_TOKEN));
 
             assertThatThrownBy(() -> authService.reissue(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -187,11 +202,15 @@ class AuthServiceTest {
         @ValueSource(strings = {"google", "kakao"})
         void notExistMemberId(final String provider) {
             final long notExistMemberId = 0L;
-            final String existRefreshToken = "refreshToken";
-            final String serviceToken = createToken(notExistMemberId, provider, existRefreshToken);
 
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(notExistMemberId, provider, existRefreshToken));
-            given(tokenRepository.exist(notExistMemberId)).willReturn(false);
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(notExistMemberId)
+                .provider(provider)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .build();
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(notExistMemberId, provider, TOKEN_TYPE, REFRESH_TOKEN));
+            given(tokenRepository.findRefreshToken(notExistMemberId)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> authService.reissue(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -202,25 +221,20 @@ class AuthServiceTest {
         @ParameterizedTest
         @ValueSource(strings = {"google", "kakao"})
         void notEqualsRefreshToken(final String provider) {
-            final long existMemberId = 0L;
             final String notExistRefreshToken = "refreshToken";
-            final String serviceToken = createToken(existMemberId, provider, notExistRefreshToken);
 
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(existMemberId, provider, notExistRefreshToken));
-            given(tokenRepository.exist(existMemberId)).willReturn(true);
-            given(tokenRepository.existRefreshToken(existMemberId, notExistRefreshToken)).willReturn(false);
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(provider)
+                .tokenType(TOKEN_TYPE)
+                .token(notExistRefreshToken)
+                .build();
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, provider, TOKEN_TYPE, notExistRefreshToken));
+            given(tokenRepository.findRefreshToken(MEMBER_ID)).willReturn(Optional.of("anotherRefreshToken"));
 
             assertThatThrownBy(() -> authService.reissue(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("잘못된 refresh token 입니다.");
-        }
-
-        private String createToken(final Long memberId, final String provider, final String token) {
-            return Jwts.builder()
-                .claim("memberId", memberId)
-                .claim("provider", provider)
-                .claim("token", token)
-                .compact();
         }
     }
 
@@ -228,16 +242,23 @@ class AuthServiceTest {
     @Nested
     public class logout {
 
-        @DisplayName("로그아웃한다")
-        @Test
-        void success() {
-            final long memberId = 0L;
-            final String provider = "google";
-            final String refreshToken = "refreshToken";
-            final String serviceToken = createToken(memberId, provider, refreshToken);
+        private static final Long MEMBER_ID = 0L;
+        private static final String PROVIDER = Provider.GOOGLE.getName();
+        private static final String TOKEN_TYPE = "Bearer";
+        private static final String REFRESH_TOKEN = "refreshToken";
 
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(memberId, provider, refreshToken));
-            given(tokenRepository.exist(memberId)).willReturn(true);
+        @DisplayName("로그아웃한다")
+        @ParameterizedTest
+        @ValueSource(strings = {"google", "kakao"})
+        void success(final String provider) {
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(provider)
+                .tokenType(TOKEN_TYPE)
+                .token(REFRESH_TOKEN)
+                .build();
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, provider, TOKEN_TYPE, REFRESH_TOKEN));
+            given(tokenRepository.findRefreshToken(MEMBER_ID)).willReturn(Optional.of(REFRESH_TOKEN));
 
             assertThatCode(() -> authService.logout(serviceToken))
                 .doesNotThrowAnyException();
@@ -247,24 +268,19 @@ class AuthServiceTest {
         @Test
         void notExistMemberId() {
             final long notExistMemberId = 0L;
-            final String provider = "google";
-            final String refreshToken = "refreshToken";
-            final String serviceToken = createToken(notExistMemberId, provider, refreshToken);
 
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(notExistMemberId, provider, refreshToken));
-            given(tokenRepository.exist(notExistMemberId)).willReturn(false);
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(notExistMemberId)
+                .provider(PROVIDER)
+                .tokenType(TOKEN_TYPE)
+                .token(REFRESH_TOKEN)
+                .build();
+            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(notExistMemberId, PROVIDER, TOKEN_TYPE, REFRESH_TOKEN));
+            given(tokenRepository.findRefreshToken(notExistMemberId)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> authService.logout(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("로그인이 필요합니다.");
-        }
-
-        private String createToken(final Long memberId, final String provider, final String token) {
-            return Jwts.builder()
-                .claim("memberId", memberId)
-                .claim("provider", provider)
-                .claim("token", token)
-                .compact();
         }
     }
 }

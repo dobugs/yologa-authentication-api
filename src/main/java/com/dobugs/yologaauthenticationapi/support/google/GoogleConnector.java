@@ -9,8 +9,10 @@ import org.springframework.stereotype.Component;
 
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.OAuthProvider;
+import com.dobugs.yologaauthenticationapi.support.dto.request.OAuthLogoutRequest;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.GoogleUserResponse;
+import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthLogoutResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthUserResponse;
 import com.dobugs.yologaauthenticationapi.support.exception.OAuthConnectionException;
@@ -52,6 +54,11 @@ public class GoogleConnector implements OAuthConnector {
             REFRESH_TOKEN_EXPIRES_IN, response.token_type());
     }
 
+    @Override
+    public void logout(final OAuthLogoutRequest oAuthLogoutRequest) {
+        connectForLogout(oAuthLogoutRequest.refreshToken(), oAuthLogoutRequest.tokenType());
+    }
+
     private GoogleTokenResponse connectForToken(final String authorizationCode, final String redirectUrl) {
         final ResponseEntity<GoogleTokenResponse> response = REST_TEMPLATE.postForEntity(
             googleProvider.generateTokenUrl(authorizationCode, redirectUrl),
@@ -84,6 +91,15 @@ public class GoogleConnector implements OAuthConnector {
         validateConnectionResponseIsSuccess(response);
         return Optional.ofNullable(response.getBody())
             .orElseThrow(() -> new OAuthConnectionException("Google 에서 Access Token 을 재발급 받는 과정에서 연결에 실패하였습니다."));
+    }
+
+    private void connectForLogout(final String refreshToken, final String tokenType) {
+        final ResponseEntity<OAuthLogoutResponse> response = REST_TEMPLATE.postForEntity(
+            googleProvider.generateLogoutUrl(refreshToken),
+            googleProvider.createLogoutEntity(tokenType, refreshToken),
+            OAuthLogoutResponse.class
+        );
+        validateConnectionResponseIsSuccess(response);
     }
 
     private void validateConnectionResponseIsSuccess(final ResponseEntity<?> response) {

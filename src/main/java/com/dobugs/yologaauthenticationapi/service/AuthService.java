@@ -17,6 +17,7 @@ import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse
 import com.dobugs.yologaauthenticationapi.service.dto.response.ServiceTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
+import com.dobugs.yologaauthenticationapi.support.dto.request.OAuthLogoutRequest;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
@@ -55,7 +56,7 @@ public class AuthService {
         final OAuthTokenResponse oAuthTokenResponse = oAuthConnector.requestToken(authorizationCode, redirectUrl);
         final OAuthUserResponse oAuthUserResponse = oAuthConnector.requestUserInfo(oAuthTokenResponse.tokenType(), oAuthTokenResponse.accessToken());
 
-        final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(oAuthTokenResponse);
+        final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpExpiration(oAuthTokenResponse);
         final Long memberId = saveMember(provider, oAuthTokenDto, oAuthUserResponse);
         final ServiceTokenDto serviceTokenDto = tokenGenerator.create(memberId, provider, oAuthTokenDto);
 
@@ -69,7 +70,7 @@ public class AuthService {
 
         validateTheExistenceOfRefreshToken(userTokenResponse.memberId(), refreshToken);
         final OAuthTokenResponse response = oAuthConnector.requestAccessToken(refreshToken);
-        final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(response);
+        final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpExpiration(response);
         restoreRefreshToken(userTokenResponse.memberId(), oAuthTokenDto.refreshToken());
         final ServiceTokenDto serviceTokenDto = tokenGenerator.create(userTokenResponse.memberId(), userTokenResponse.provider(), oAuthTokenDto);
         return new ServiceTokenResponse(serviceTokenDto.accessToken(), serviceTokenDto.refreshToken());
@@ -77,10 +78,14 @@ public class AuthService {
 
     public void logout(final String serviceToken) {
         final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
+        final OAuthConnector oAuthConnector = selectConnector(userTokenResponse.provider());
         final Long memberId = userTokenResponse.memberId();
 
-        validateLogged(memberId);
+        final String accessToken = userTokenResponse.token();
+        final String refreshToken = findRefreshToken(memberId);
+        final String tokenType = userTokenResponse.tokenType();
         tokenRepository.delete(memberId);
+        oAuthConnector.logout(new OAuthLogoutRequest(accessToken, refreshToken, tokenType));
     }
 
     private Long saveMember(final String provider, final OAuthTokenDto oAuthTokenDto, final OAuthUserResponse OAuthUserResponse) {
@@ -106,7 +111,7 @@ public class AuthService {
     private void saveMemberToRedis(final String provider, final OAuthTokenDto oAuthTokenDto, final Member savedMember) {
         final OAuthToken oAuthToken = OAuthToken.login(
             savedMember.getId(), Provider.findOf(provider),
-            oAuthTokenDto.refreshToken(), (long) oAuthTokenDto.refreshTokenExpiresIn()
+            oAuthTokenDto.refreshToken(), oAuthTokenDto.refreshTokenExpiresIn()
         );
         tokenRepository.save(oAuthToken);
     }
@@ -115,15 +120,14 @@ public class AuthService {
         tokenRepository.saveRefreshToken(memberId, refreshToken);
     }
 
-    private void validateLogged(final Long memberId) {
-        if (!tokenRepository.exist(memberId)) {
-            throw new IllegalArgumentException(String.format("로그인이 필요합니다. [%d]", memberId));
-        }
+    private String findRefreshToken(final Long memberId) {
+        return tokenRepository.findRefreshToken(memberId)
+            .orElseThrow(() -> new IllegalArgumentException(String.format("로그인이 필요합니다. [%d]", memberId)));
     }
 
     private void validateTheExistenceOfRefreshToken(final Long memberId, final String refreshToken) {
-        validateLogged(memberId);
-        if (!tokenRepository.existRefreshToken(memberId, refreshToken)) {
+        final String savedRefreshToken = findRefreshToken(memberId);
+        if (!savedRefreshToken.equals(refreshToken)) {
             throw new IllegalArgumentException("잘못된 refresh token 입니다.");
         }
     }

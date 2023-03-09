@@ -1,5 +1,6 @@
 package com.dobugs.yologaauthenticationapi.support;
 
+import com.dobugs.yologaauthenticationapi.support.dto.request.OAuthLogoutRequest;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthUserResponse;
 
@@ -33,5 +34,9 @@ public class FakeOAuthConnector implements OAuthConnector {
             "refreshToken", 10_000,
             "Bearer"
         );
+    }
+
+    @Override
+    public void logout(final OAuthLogoutRequest oAuthLogoutRequest) {
     }
 }

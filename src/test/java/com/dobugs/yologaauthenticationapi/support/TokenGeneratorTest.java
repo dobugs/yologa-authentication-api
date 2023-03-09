@@ -19,9 +19,9 @@ import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
+import com.dobugs.yologaauthenticationapi.support.fixture.ServiceTokenFixture;
 
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -32,13 +32,14 @@ class TokenGeneratorTest {
 
     private static final String SECRET_KEY_VALUE = "secretKey".repeat(10);
     private static final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(SECRET_KEY_VALUE.getBytes(StandardCharsets.UTF_8));
-    private static final int DEFAULT_REFRESH_TOKEN_EXPIRES_IN = 1000;
+    private static final long ACCESS_TOKEN_EXPIRES_IN = 1_000_000;
+    private static final long REFRESH_TOKEN_EXPIRES_IN = 1_000_000;
 
     private TokenGenerator tokenGenerator;
 
     @BeforeEach
     void setUp() {
-        tokenGenerator = new TokenGenerator(SECRET_KEY_VALUE, DEFAULT_REFRESH_TOKEN_EXPIRES_IN);
+        tokenGenerator = new TokenGenerator(SECRET_KEY_VALUE, ACCESS_TOKEN_EXPIRES_IN, REFRESH_TOKEN_EXPIRES_IN);
     }
 
     @DisplayName("token 생성 테스트")
@@ -49,52 +50,28 @@ class TokenGeneratorTest {
         private static final String PROVIDER = Provider.GOOGLE.getName();
         private static final String ACCESS_TOKEN = "accessToken";
         private static final String REFRESH_TOKEN = "refreshToken";
-        private static final int EXPIRES_IN = 1000;
+        private static final String TOKEN_TYPE = "bearer";
+        private static final int EXPIRES_IN = 1_000_000;
 
         @DisplayName("token 을 생성한다")
         @Test
         void success() {
-            final OAuthTokenDto oAuthTokenDto = new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, "bearer");
+            final OAuthTokenDto oAuthTokenDto = new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, TOKEN_TYPE);
 
             final ServiceTokenDto serviceTokenDto = tokenGenerator.create(MEMBER_ID, PROVIDER, oAuthTokenDto);
 
-            final Integer memberId = extractMemberId(serviceTokenDto.accessToken());
-            final String accessToken = extractToken(serviceTokenDto.accessToken());
-            final String refreshToken = extractToken(serviceTokenDto.refreshToken());
-            final String provider = extractProvider(serviceTokenDto.accessToken());
+            final Integer memberId = ServiceTokenFixture.extractMemberId(serviceTokenDto.accessToken(), SECRET_KEY);
+            final String accessToken = ServiceTokenFixture.extractToken(serviceTokenDto.accessToken(), SECRET_KEY);
+            final String refreshToken = ServiceTokenFixture.extractToken(serviceTokenDto.refreshToken(), SECRET_KEY);
+            final String provider = ServiceTokenFixture.extractProvider(serviceTokenDto.accessToken(), SECRET_KEY);
+            final String tokenType = ServiceTokenFixture.extractTokenType(serviceTokenDto.accessToken(), SECRET_KEY);
             assertAll(
                 () -> assertThat(memberId).isEqualTo(MEMBER_ID),
                 () -> assertThat(accessToken).isEqualTo(ACCESS_TOKEN),
                 () -> assertThat(refreshToken).isEqualTo(REFRESH_TOKEN),
-                () -> assertThat(provider).isEqualTo(PROVIDER)
+                () -> assertThat(provider).isEqualTo(PROVIDER),
+                () -> assertThat(tokenType).isEqualTo(TOKEN_TYPE)
             );
-        }
-
-        private Integer extractMemberId(final String createdToken) {
-            return (Integer) Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
-                .build()
-                .parseClaimsJws(createdToken)
-                .getBody()
-                .get("memberId");
-        }
-
-        private String extractToken(final String createdToken) {
-            return (String) Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
-                .build()
-                .parseClaimsJws(createdToken)
-                .getBody()
-                .get("token");
-        }
-
-        private String extractProvider(final String createdToken) {
-            return (String) Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
-                .build()
-                .parseClaimsJws(createdToken)
-                .getBody()
-                .get("provider");
         }
     }
 
@@ -104,13 +81,22 @@ class TokenGeneratorTest {
 
         private static final long MEMBER_ID = 0L;
         private static final String PROVIDER = Provider.GOOGLE.getName();
+        private static final String TOKEN_TYPE = "Bearer";
         private static final String ACCESS_TOKEN = "accessToken";
         private static final Date EXPIRATION = new Date(new Date().getTime() + 10_000);
 
         @DisplayName("token 을 추출한다")
         @Test
         void success() {
-            final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN, EXPIRATION);
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(PROVIDER)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .expiration(EXPIRATION)
+                .secretKey(SECRET_KEY)
+                .algorithm(SignatureAlgorithm.HS256)
+                .build();
 
             final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
 
@@ -133,12 +119,13 @@ class TokenGeneratorTest {
         @DisplayName("지원하지 않는 JWT 일 경우 예외가 발생한다")
         @Test
         void JWTIsUnsupported() {
-            final String serviceToken = Jwts.builder()
-                .claim("memberId", MEMBER_ID)
-                .claim("provider", PROVIDER)
-                .claim("token", ACCESS_TOKEN)
-                .setExpiration(EXPIRATION)
-                .compact();
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(PROVIDER)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .expiration(EXPIRATION)
+                .build();
 
             assertThatThrownBy(() -> tokenGenerator.extract(serviceToken))
                 .isInstanceOf(UnsupportedJwtException.class);
@@ -148,13 +135,15 @@ class TokenGeneratorTest {
         @Test
         void signatureIsDifferent() {
             final SecretKey differentSecretKey = Keys.hmacShaKeyFor("differentKey".repeat(10).getBytes(StandardCharsets.UTF_8));
-            final String serviceToken = Jwts.builder()
-                .claim("memberId", MEMBER_ID)
-                .claim("provider", PROVIDER)
-                .claim("token", ACCESS_TOKEN)
-                .setExpiration(EXPIRATION)
-                .signWith(differentSecretKey, SignatureAlgorithm.HS256)
-                .compact();
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(PROVIDER)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .expiration(EXPIRATION)
+                .secretKey(differentSecretKey)
+                .algorithm(SignatureAlgorithm.HS256)
+                .build();
 
             assertThatThrownBy(() -> tokenGenerator.extract(serviceToken))
                 .isInstanceOf(SignatureException.class);
@@ -164,52 +153,41 @@ class TokenGeneratorTest {
         @Test
         void JWTIsExpired() {
             final Date expiration = new Date(new Date().getTime() - 1);
-            final String serviceToken = createToken(MEMBER_ID, PROVIDER, ACCESS_TOKEN, expiration);
+            final String serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(PROVIDER)
+                .tokenType(TOKEN_TYPE)
+                .token(ACCESS_TOKEN)
+                .expiration(expiration)
+                .secretKey(SECRET_KEY)
+                .algorithm(SignatureAlgorithm.HS256)
+                .build();
 
             assertThatThrownBy(() -> tokenGenerator.extract(serviceToken))
                 .isInstanceOf(ExpiredJwtException.class);
         }
-
-        private String createToken(final Long memberId, final String provider, final String token, final Date expiration) {
-            return Jwts.builder()
-                .claim("memberId", memberId)
-                .claim("provider", provider)
-                .claim("token", token)
-                .setExpiration(expiration)
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
-                .compact();
-        }
     }
 
-    @DisplayName("refresh token 만료 시간 설정 테스트")
+    @DisplayName("만료 시간 설정 테스트")
     @Nested
-    public class setUpRefreshTokenExpiration {
+    public class setUpExpiration {
 
         private static final String ACCESS_TOKEN = "accessToken";
         private static final String REFRESH_TOKEN = "refreshToken";
-        private static final int EXPIRATION = 10_000;
+        private static final int EXPIRATION = 1;
         private static final String TOKEN_TYPE = "Bearer";
 
-        @DisplayName("refresh token 의 만료 시간이 설정되어 있으면 그대로 반환한다")
+        @DisplayName("만료 시간을 설정한다")
         @Test
-        void notSetUp() {
-            final int refreshTokenExpiresIn = 10_000;
-            final OAuthTokenResponse oAuthTokenResponse = new OAuthTokenResponse(ACCESS_TOKEN, EXPIRATION, REFRESH_TOKEN, refreshTokenExpiresIn, TOKEN_TYPE);
+        void success() {
+            final OAuthTokenResponse oAuthTokenResponse = new OAuthTokenResponse(ACCESS_TOKEN, EXPIRATION, REFRESH_TOKEN, EXPIRATION, TOKEN_TYPE);
 
-            final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(oAuthTokenResponse);
+            final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpExpiration(oAuthTokenResponse);
 
-            assertThat(oAuthTokenDto.refreshTokenExpiresIn()).isEqualTo(refreshTokenExpiresIn);
-        }
-
-        @DisplayName("refresh token 이 -1 이면 기본 만료 시간으로 설정한다")
-        @Test
-        void setUp() {
-            final int refreshTokenExpiresIn = -1;
-            final OAuthTokenResponse oAuthTokenResponse = new OAuthTokenResponse(ACCESS_TOKEN, EXPIRATION, REFRESH_TOKEN, refreshTokenExpiresIn, TOKEN_TYPE);
-
-            final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpRefreshTokenExpiration(oAuthTokenResponse);
-
-            assertThat(oAuthTokenDto.refreshTokenExpiresIn()).isEqualTo(DEFAULT_REFRESH_TOKEN_EXPIRES_IN);
+            assertAll(
+                () -> assertThat(oAuthTokenDto.expiresIn()).isEqualTo(ACCESS_TOKEN_EXPIRES_IN),
+                () -> assertThat(oAuthTokenDto.refreshTokenExpiresIn()).isEqualTo(REFRESH_TOKEN_EXPIRES_IN)
+            );
         }
     }
 }
