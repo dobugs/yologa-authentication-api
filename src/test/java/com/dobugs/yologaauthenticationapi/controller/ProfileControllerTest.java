@@ -11,31 +11,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.restdocs.RestDocumentationExtension;
-import org.springframework.test.web.servlet.MockMvc;
 
 import com.dobugs.yologaauthenticationapi.service.ProfileService;
 
-@AutoConfigureMockMvc
-@AutoConfigureRestDocs
 @WebMvcTest(ProfileController.class)
-@ExtendWith({RestDocumentationExtension.class, MockitoExtension.class})
 @DisplayName("profile 컨트롤러 테스트")
-class ProfileControllerTest {
+class ProfileControllerTest extends ControllerTest {
 
     private static final String BASIC_URL = "/api/v1/members/profile";
-
-    @Autowired
-    private MockMvc mockMvc;
 
     @MockBean
     private ProfileService profileService;

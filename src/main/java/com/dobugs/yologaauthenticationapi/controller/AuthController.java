@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dobugs.yologaauthenticationapi.config.auth.Authorized;
+import com.dobugs.yologaauthenticationapi.config.auth.ValidatedRefreshToken;
 import com.dobugs.yologaauthenticationapi.service.AuthService;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
@@ -39,12 +41,15 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @Authorized
+    @ValidatedRefreshToken
     @PostMapping("/reissue")
     public ResponseEntity<ServiceTokenResponse> reissue(@RequestHeader("Authorization") final String refreshToken) {
         final ServiceTokenResponse response = authService.reissue(refreshToken);
         return ResponseEntity.ok(response);
     }
 
+    @Authorized
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@RequestHeader("Authorization") final String accessToken) {
         authService.logout(accessToken);

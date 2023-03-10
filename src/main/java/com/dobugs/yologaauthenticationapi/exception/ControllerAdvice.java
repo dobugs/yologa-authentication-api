@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.dobugs.yologaauthenticationapi.config.exception.AuthorizationException;
 import com.dobugs.yologaauthenticationapi.exception.dto.response.ExceptionResponse;
 import com.dobugs.yologaauthenticationapi.support.exception.OAuthException;
 
@@ -55,6 +56,12 @@ public class ControllerAdvice {
     public ResponseEntity<ExceptionResponse> handleExpiredJwtException(ExpiredJwtException e) {
         final String message = "토큰의 만료 시간이 지났습니다.";
         final ExceptionResponse response = ExceptionResponse.from(message, e.getMessage());
+        return ResponseEntity.status(UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(AuthorizationException.class)
+    public ResponseEntity<ExceptionResponse> handleAuthorizationException(AuthorizationException e) {
+        final ExceptionResponse response = ExceptionResponse.from(e.getMessage());
         return ResponseEntity.status(UNAUTHORIZED).body(response);
     }
 

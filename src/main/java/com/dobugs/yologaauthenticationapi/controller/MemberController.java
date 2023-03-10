@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dobugs.yologaauthenticationapi.config.auth.Authorized;
 import com.dobugs.yologaauthenticationapi.service.MemberService;
 import com.dobugs.yologaauthenticationapi.service.dto.request.MemberUpdateRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.MemberResponse;
@@ -29,12 +30,14 @@ public class MemberController {
         return ResponseEntity.ok(response);
     }
 
+    @Authorized
     @GetMapping("/me")
     public ResponseEntity<MemberResponse> findMe(@RequestHeader("Authorization") final String accessToken) {
         final MemberResponse response = memberService.findMe(accessToken);
         return ResponseEntity.ok(response);
     }
 
+    @Authorized
     @PostMapping
     public ResponseEntity<Void> update(
         @RequestHeader("Authorization") final String accessToken,
@@ -44,6 +47,7 @@ public class MemberController {
         return ResponseEntity.ok().build();
     }
 
+    @Authorized
     @DeleteMapping
     public ResponseEntity<Void> delete(@RequestHeader("Authorization") final String accessToken) {
         memberService.delete(accessToken);
