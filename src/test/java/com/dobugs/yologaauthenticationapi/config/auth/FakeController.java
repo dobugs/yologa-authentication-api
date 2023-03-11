@@ -29,8 +29,8 @@ public class FakeController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/hasLoginUserAnnotation")
-    public ResponseEntity<Void> hasLoginUserAnnotation(@ExtractAuthorization final ServiceToken serviceToken) {
+    @GetMapping("/hasExtractAuthorizationAnnotation")
+    public ResponseEntity<Void> hasExtractAuthorizationAnnotation(@ExtractAuthorization final ServiceToken serviceToken) {
         return ResponseEntity.ok().build();
     }
 }
