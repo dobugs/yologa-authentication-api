@@ -3,13 +3,12 @@ package com.dobugs.yologaauthenticationapi.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.domain.Member;
 import com.dobugs.yologaauthenticationapi.domain.Resource;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.MemberUpdateRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.MemberResponse;
-import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
-import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final TokenGenerator tokenGenerator;
 
     @Transactional(readOnly = true)
     public MemberResponse findById(final Long memberId) {
@@ -35,23 +33,17 @@ public class MemberService {
     }
 
     @Transactional(readOnly = true)
-    public MemberResponse findMe(final String serviceToken) {
-        final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
-        final Long memberId = userTokenResponse.memberId();
-        return findById(memberId);
+    public MemberResponse findMe(final ServiceToken serviceToken) {
+        return findById(serviceToken.memberId());
     }
 
-    public void update(final String serviceToken, final MemberUpdateRequest request) {
-        final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
-        final Long memberId = userTokenResponse.memberId();
-        final Member savedMember = findMemberById(memberId);
+    public void update(final ServiceToken serviceToken, final MemberUpdateRequest request) {
+        final Member savedMember = findMemberById(serviceToken.memberId());
         savedMember.update(request.nickname(), request.phoneNumber());
     }
 
-    public void delete(final String serviceToken) {
-        final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
-        final Long memberId = userTokenResponse.memberId();
-        final Member savedMember = findMemberById(memberId);
+    public void delete(final ServiceToken serviceToken) {
+        final Member savedMember = findMemberById(serviceToken.memberId());
         savedMember.delete();
     }
 

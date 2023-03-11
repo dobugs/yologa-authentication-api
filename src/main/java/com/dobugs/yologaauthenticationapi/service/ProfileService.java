@@ -7,15 +7,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.domain.Member;
 import com.dobugs.yologaauthenticationapi.domain.Resource;
 import com.dobugs.yologaauthenticationapi.domain.ResourceType;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.support.StorageConnector;
 import com.dobugs.yologaauthenticationapi.support.StorageGenerator;
-import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ResourceResponse;
-import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,16 +27,13 @@ public class ProfileService {
     private static final List<String> CONTENT_TYPES_OF_IMAGE = List.of(MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE);
 
     private final MemberRepository memberRepository;
-    private final TokenGenerator tokenGenerator;
     private final StorageConnector s3Connector;
     private final StorageGenerator s3Generator;
 
-    public String update(final String serviceToken, final MultipartFile newProfile) {
-        final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
-        final Long memberId = userTokenResponse.memberId();
+    public String update(final ServiceToken serviceToken, final MultipartFile newProfile) {
         validateProfileIsImage(newProfile);
 
-        final Member savedMember = findMemberById(memberId);
+        final Member savedMember = findMemberById(serviceToken.memberId());
         final Resource savedResource = savedMember.getResource();
         if (savedResource != null) {
             savedResource.delete();
@@ -50,11 +46,8 @@ public class ProfileService {
         return response.resourceUrl();
     }
 
-    public void init(final String serviceToken) {
-        final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
-        final Long memberId = userTokenResponse.memberId();
-
-        final Member savedMember = findMemberById(memberId);
+    public void init(final ServiceToken serviceToken) {
+        final Member savedMember = findMemberById(serviceToken.memberId());
         final Resource savedResource = savedMember.getResource();
         if (savedResource == null) {
             return;

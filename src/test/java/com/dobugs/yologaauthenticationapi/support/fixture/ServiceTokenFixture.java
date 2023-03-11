@@ -4,6 +4,8 @@ import java.util.Date;
 
 import javax.crypto.SecretKey;
 
+import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
+
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -59,7 +61,7 @@ public class ServiceTokenFixture {
         public Builder() {
         }
 
-        public String build() {
+        public String compact() {
             final JwtBuilder jwtBuilder = Jwts.builder();
             if (memberId != null) {
                 jwtBuilder.claim("memberId", memberId);
@@ -80,6 +82,10 @@ public class ServiceTokenFixture {
                 jwtBuilder.signWith(secretKey, algorithm);
             }
             return jwtBuilder.compact();
+        }
+
+        public ServiceToken build() {
+            return new ServiceToken(memberId, provider, tokenType, token);
         }
 
         public Builder memberId(final Long memberId) {

@@ -12,16 +12,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.restdocs.RestDocumentationExtension;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -29,22 +22,12 @@ import com.dobugs.yologaauthenticationapi.service.AuthService;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.ServiceTokenResponse;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-@AutoConfigureMockMvc
-@AutoConfigureRestDocs
 @WebMvcTest(AuthController.class)
-@ExtendWith({RestDocumentationExtension.class, MockitoExtension.class})
 @DisplayName("Auth 컨트롤러 테스트")
-class AuthControllerTest {
+class AuthControllerTest extends ControllerTest {
 
     private static final String BASIC_URL = "/api/v1/oauth2";
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @MockBean
     private AuthService authService;
@@ -109,7 +92,7 @@ class AuthControllerTest {
         final String refreshToken = "refreshToken";
 
         final ServiceTokenResponse response = new ServiceTokenResponse(accessToken, refreshToken);
-        given(authService.reissue(refreshToken)).willReturn(response);
+        given(authService.reissue(any())).willReturn(response);
 
         mockMvc.perform(post(BASIC_URL + "/reissue")
                 .header("Authorization", refreshToken))

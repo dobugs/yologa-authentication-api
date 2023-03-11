@@ -20,6 +20,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.domain.Member;
 import com.dobugs.yologaauthenticationapi.domain.Provider;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
@@ -33,7 +34,6 @@ import com.dobugs.yologaauthenticationapi.support.OAuthConnector;
 import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
-import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.fixture.ServiceTokenFixture;
 
 @ExtendWith(MockitoExtension.class)
@@ -163,15 +163,13 @@ class AuthServiceTest {
         @ParameterizedTest
         @ValueSource(strings = {"google", "kakao"})
         void success(final String provider) {
-            final String serviceToken = new ServiceTokenFixture.Builder()
+            final ServiceToken serviceToken = new ServiceTokenFixture.Builder()
                 .memberId(MEMBER_ID)
                 .provider(provider)
                 .tokenType(TOKEN_TYPE)
                 .token(ACCESS_TOKEN)
                 .build();
 
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, provider, TOKEN_TYPE, REFRESH_TOKEN));
-            given(tokenRepository.findRefreshToken(MEMBER_ID)).willReturn(Optional.of(REFRESH_TOKEN));
             given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, TOKEN_TYPE));
             given(tokenGenerator.create(eq(MEMBER_ID), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
@@ -184,57 +182,16 @@ class AuthServiceTest {
         void notExistProvider() {
             final String notExistProvider = "notExistProvider";
 
-            final String serviceToken = new ServiceTokenFixture.Builder()
+            final ServiceToken serviceToken = new ServiceTokenFixture.Builder()
                 .memberId(MEMBER_ID)
                 .provider(notExistProvider)
                 .tokenType(TOKEN_TYPE)
-                .token(ACCESS_TOKEN)
+                .token(REFRESH_TOKEN)
                 .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, notExistProvider, TOKEN_TYPE, REFRESH_TOKEN));
 
             assertThatThrownBy(() -> authService.reissue(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("잘못된 provider 입니다.");
-        }
-
-        @DisplayName("memberId 가 존재하지 않을 경우 예외가 발생한다")
-        @ParameterizedTest
-        @ValueSource(strings = {"google", "kakao"})
-        void notExistMemberId(final String provider) {
-            final long notExistMemberId = 0L;
-
-            final String serviceToken = new ServiceTokenFixture.Builder()
-                .memberId(notExistMemberId)
-                .provider(provider)
-                .tokenType(TOKEN_TYPE)
-                .token(ACCESS_TOKEN)
-                .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(notExistMemberId, provider, TOKEN_TYPE, REFRESH_TOKEN));
-            given(tokenRepository.findRefreshToken(notExistMemberId)).willReturn(Optional.empty());
-
-            assertThatThrownBy(() -> authService.reissue(serviceToken))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("로그인이 필요합니다.");
-        }
-
-        @DisplayName("refresh token 이 일치하지 않을 경우 예외가 발생한다")
-        @ParameterizedTest
-        @ValueSource(strings = {"google", "kakao"})
-        void notEqualsRefreshToken(final String provider) {
-            final String notExistRefreshToken = "refreshToken";
-
-            final String serviceToken = new ServiceTokenFixture.Builder()
-                .memberId(MEMBER_ID)
-                .provider(provider)
-                .tokenType(TOKEN_TYPE)
-                .token(notExistRefreshToken)
-                .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, provider, TOKEN_TYPE, notExistRefreshToken));
-            given(tokenRepository.findRefreshToken(MEMBER_ID)).willReturn(Optional.of("anotherRefreshToken"));
-
-            assertThatThrownBy(() -> authService.reissue(serviceToken))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("잘못된 refresh token 입니다.");
         }
     }
 
@@ -245,20 +202,19 @@ class AuthServiceTest {
         private static final Long MEMBER_ID = 0L;
         private static final String PROVIDER = Provider.GOOGLE.getName();
         private static final String TOKEN_TYPE = "Bearer";
-        private static final String REFRESH_TOKEN = "refreshToken";
+        private static final String ACCESS_TOKEN = "accessToken";
 
         @DisplayName("로그아웃한다")
         @ParameterizedTest
         @ValueSource(strings = {"google", "kakao"})
         void success(final String provider) {
-            final String serviceToken = new ServiceTokenFixture.Builder()
+            final ServiceToken serviceToken = new ServiceTokenFixture.Builder()
                 .memberId(MEMBER_ID)
                 .provider(provider)
                 .tokenType(TOKEN_TYPE)
-                .token(REFRESH_TOKEN)
+                .token(ACCESS_TOKEN)
                 .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, provider, TOKEN_TYPE, REFRESH_TOKEN));
-            given(tokenRepository.findRefreshToken(MEMBER_ID)).willReturn(Optional.of(REFRESH_TOKEN));
+            given(tokenRepository.findRefreshToken(MEMBER_ID)).willReturn(Optional.of(ACCESS_TOKEN));
 
             assertThatCode(() -> authService.logout(serviceToken))
                 .doesNotThrowAnyException();
@@ -269,13 +225,12 @@ class AuthServiceTest {
         void notExistMemberId() {
             final long notExistMemberId = 0L;
 
-            final String serviceToken = new ServiceTokenFixture.Builder()
+            final ServiceToken serviceToken = new ServiceTokenFixture.Builder()
                 .memberId(notExistMemberId)
                 .provider(PROVIDER)
                 .tokenType(TOKEN_TYPE)
-                .token(REFRESH_TOKEN)
+                .token(ACCESS_TOKEN)
                 .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(notExistMemberId, PROVIDER, TOKEN_TYPE, REFRESH_TOKEN));
             given(tokenRepository.findRefreshToken(notExistMemberId)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> authService.logout(serviceToken))

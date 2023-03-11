@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 
+import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.domain.Member;
 import com.dobugs.yologaauthenticationapi.domain.Provider;
 import com.dobugs.yologaauthenticationapi.domain.Resource;
@@ -24,8 +25,6 @@ import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.support.FakeStorageConnector;
 import com.dobugs.yologaauthenticationapi.support.FakeStorageGenerator;
 import com.dobugs.yologaauthenticationapi.support.StorageConnector;
-import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
-import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.fixture.ServiceTokenFixture;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,15 +36,12 @@ class ProfileServiceTest {
     @Mock
     private MemberRepository memberRepository;
 
-    @Mock
-    private TokenGenerator tokenGenerator;
-
     private StorageConnector fakeS3Connector;
 
     @BeforeEach
     void setUp() {
         fakeS3Connector = new FakeStorageConnector();
-        profileService = new ProfileService(memberRepository, tokenGenerator, fakeS3Connector, new FakeStorageGenerator());
+        profileService = new ProfileService(memberRepository, fakeS3Connector, new FakeStorageGenerator());
     }
 
     @DisplayName("프로필 수정 테스트")
@@ -53,29 +49,30 @@ class ProfileServiceTest {
     public class update {
 
         private static final Long MEMBER_ID = 0L;
-        private static final String PROVIDER = Provider.GOOGLE.getName();
-        private static final String TOKEN_TYPE = "Bearer";
-        private static final String ACCESS_TOKEN = "accessToken";
         private static final String RESOURCE_NAME = "profile.png";
 
-        final MockMultipartFile newProfile = new MockMultipartFile(
-            "profile",
-            "최종_최종_최종_프로필.png",
-            MediaType.IMAGE_PNG_VALUE,
-            "new profile content".getBytes()
-        );
+        private ServiceToken serviceToken;
+        private MockMultipartFile newProfile;
+
+        @BeforeEach
+        void setUp() {
+            serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(Provider.GOOGLE.getName())
+                .tokenType("Bearer")
+                .token("accessToken")
+                .build();
+            newProfile = new MockMultipartFile(
+                "profile",
+                "최종_최종_최종_프로필.png",
+                MediaType.IMAGE_PNG_VALUE,
+                "new profile content".getBytes()
+            );
+        }
 
         @DisplayName("프로필을 수정한다")
         @Test
         void success() {
-            final String serviceToken = new ServiceTokenFixture.Builder()
-                .memberId(MEMBER_ID)
-                .provider(PROVIDER)
-                .tokenType(TOKEN_TYPE)
-                .token(ACCESS_TOKEN)
-                .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
-
             final Member member = new Member("oauthId");
             member.updateProfile(new Resource(RESOURCE_NAME, ResourceType.PROFILE, "http://localhost:8080/profile.png"));
             given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.of(member));
@@ -90,14 +87,6 @@ class ProfileServiceTest {
         @DisplayName("기존에 프로필이 없었더라도 프로필 수정에 성공한다")
         @Test
         void profileIsNull() {
-            final String serviceToken = new ServiceTokenFixture.Builder()
-                .memberId(MEMBER_ID)
-                .provider(PROVIDER)
-                .tokenType(TOKEN_TYPE)
-                .token(ACCESS_TOKEN)
-                .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
-
             final Member member = new Member("oauthId");
             given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.of(member));
 
@@ -116,14 +105,6 @@ class ProfileServiceTest {
                 "new profile content".getBytes()
             );
 
-            final String serviceToken = new ServiceTokenFixture.Builder()
-                .memberId(MEMBER_ID)
-                .provider(PROVIDER)
-                .tokenType(TOKEN_TYPE)
-                .token(ACCESS_TOKEN)
-                .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
-
             assertThatThrownBy(() -> profileService.update(serviceToken, newProfile))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("프로필은 PNG, JPG 형식만 가능합니다.");
@@ -132,13 +113,6 @@ class ProfileServiceTest {
         @DisplayName("존재하지 않는 사용자의 프로필을 수정하면 예외가 발생한다")
         @Test
         void memberIsNotExist() {
-            final String serviceToken = new ServiceTokenFixture.Builder()
-                .memberId(MEMBER_ID)
-                .provider(PROVIDER)
-                .tokenType(TOKEN_TYPE)
-                .token(ACCESS_TOKEN)
-                .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
             given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> profileService.update(serviceToken, newProfile))
@@ -152,34 +126,30 @@ class ProfileServiceTest {
     public class init {
 
         private static final Long MEMBER_ID = 0L;
-        private static final String PROVIDER = Provider.GOOGLE.getName();
-        private static final String TOKEN_TYPE = "Bearer";
-        private static final String ACCESS_TOKEN = "accessToken";
         private static final String RESOURCE_NAME = "profile.png";
 
-        private final MockMultipartFile resource = new MockMultipartFile(
-            "profile",
-            "최종_최종_최종_프로필.png",
-            MediaType.IMAGE_PNG_VALUE,
-            "new profile content".getBytes()
-        );
+        private ServiceToken serviceToken;
 
         @BeforeEach
         void setUp() {
+            serviceToken = new ServiceTokenFixture.Builder()
+                .memberId(MEMBER_ID)
+                .provider(Provider.GOOGLE.getName())
+                .tokenType("Bearer")
+                .token("accessToken")
+                .build();
+            final MockMultipartFile resource = new MockMultipartFile(
+                "profile",
+                "최종_최종_최종_프로필.png",
+                MediaType.IMAGE_PNG_VALUE,
+                "new profile content".getBytes()
+            );
             fakeS3Connector.save(resource, "/", RESOURCE_NAME);
         }
 
         @DisplayName("프로필을 초기화한다")
         @Test
         void success() {
-            final String serviceToken = new ServiceTokenFixture.Builder()
-                .memberId(MEMBER_ID)
-                .provider(PROVIDER)
-                .tokenType(TOKEN_TYPE)
-                .token(ACCESS_TOKEN)
-                .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
-
             final Member member = new Member("oauthId");
             member.updateProfile(new Resource(RESOURCE_NAME, ResourceType.PROFILE, "http://localhost:8080/profile.png"));
             given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.of(member));
@@ -192,14 +162,6 @@ class ProfileServiceTest {
         @DisplayName("기존에 프로필이 없었더라도 프로필 초기화에 성공한다")
         @Test
         void profileIsNull() {
-            final String serviceToken = new ServiceTokenFixture.Builder()
-                .memberId(MEMBER_ID)
-                .provider(PROVIDER)
-                .tokenType(TOKEN_TYPE)
-                .token(ACCESS_TOKEN)
-                .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
-
             final Member member = new Member("oauthId");
             given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.of(member));
 
@@ -211,13 +173,6 @@ class ProfileServiceTest {
         @DisplayName("존재하지 않는 사용자의 프로필을 초기화하면 예외가 발생한다")
         @Test
         void memberIsNotExist() {
-            final String serviceToken = new ServiceTokenFixture.Builder()
-                .memberId(MEMBER_ID)
-                .provider(PROVIDER)
-                .tokenType(TOKEN_TYPE)
-                .token(ACCESS_TOKEN)
-                .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
             given(memberRepository.findByIdAndArchivedIsTrue(MEMBER_ID)).willReturn(Optional.empty());
 
             assertThatThrownBy(() -> profileService.init(serviceToken))
