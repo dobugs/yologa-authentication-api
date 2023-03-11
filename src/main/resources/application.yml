@@ -3,6 +3,7 @@ spring:
     active: dev
   config:
     import:
+      - application-service-server.yml
       - yologa-security/application-oauth2.yml
       - yologa-security/application-jwt.yml
       - yologa-security/application-aws.yml
