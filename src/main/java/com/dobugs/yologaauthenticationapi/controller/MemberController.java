@@ -6,13 +6,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dobugs.yologaauthenticationapi.config.auth.Authorized;
-import com.dobugs.yologaauthenticationapi.config.auth.ExtractAuthorization;
-import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
+import com.dobugs.yologaauthenticationapi.auth.Authorized;
+import com.dobugs.yologaauthenticationapi.auth.ExtractAuthorization;
+import com.dobugs.yologaauthenticationapi.auth.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.service.MemberService;
 import com.dobugs.yologaauthenticationapi.service.dto.request.MemberUpdateRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.MemberResponse;

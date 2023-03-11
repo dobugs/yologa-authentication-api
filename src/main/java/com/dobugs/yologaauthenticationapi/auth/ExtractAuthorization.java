@@ -1,4 +1,4 @@
-package com.dobugs.yologaauthenticationapi.config.auth;
+package com.dobugs.yologaauthenticationapi.auth;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

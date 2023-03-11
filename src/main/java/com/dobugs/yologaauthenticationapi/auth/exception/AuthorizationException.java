@@ -1,4 +1,4 @@
-package com.dobugs.yologaauthenticationapi.config.exception;
+package com.dobugs.yologaauthenticationapi.auth.exception;
 
 public class AuthorizationException extends RuntimeException {
 

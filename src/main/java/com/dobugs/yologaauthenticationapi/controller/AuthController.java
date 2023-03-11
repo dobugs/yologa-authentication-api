@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dobugs.yologaauthenticationapi.config.auth.Authorized;
+import com.dobugs.yologaauthenticationapi.auth.Authorized;
 
 import lombok.RequiredArgsConstructor;
 

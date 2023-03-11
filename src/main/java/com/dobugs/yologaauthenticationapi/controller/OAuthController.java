@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.dobugs.yologaauthenticationapi.config.auth.Authorized;
-import com.dobugs.yologaauthenticationapi.config.auth.ExtractAuthorization;
-import com.dobugs.yologaauthenticationapi.config.auth.ValidatedRefreshToken;
-import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
+import com.dobugs.yologaauthenticationapi.auth.Authorized;
+import com.dobugs.yologaauthenticationapi.auth.ExtractAuthorization;
+import com.dobugs.yologaauthenticationapi.auth.ValidatedRefreshToken;
+import com.dobugs.yologaauthenticationapi.auth.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.service.OAuthService;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;

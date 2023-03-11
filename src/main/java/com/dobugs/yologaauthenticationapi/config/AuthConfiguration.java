@@ -1,4 +1,4 @@
-package com.dobugs.yologaauthenticationapi.config.auth;
+package com.dobugs.yologaauthenticationapi.config;
 
 import java.util.List;
 
@@ -7,6 +7,9 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import com.dobugs.yologaauthenticationapi.auth.AuthInterceptor;
+import com.dobugs.yologaauthenticationapi.auth.TokenExtractor;
+import com.dobugs.yologaauthenticationapi.auth.TokenResolver;
 import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
 
 import lombok.RequiredArgsConstructor;
