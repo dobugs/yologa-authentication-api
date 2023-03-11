@@ -18,8 +18,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
-import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
 @AutoConfigureMockMvc
 @WebMvcTest(FakeController.class)
@@ -61,7 +61,7 @@ class AuthInterceptorTest {
         @DisplayName("@Authorized 어노테이션이 있을 경우 JWT 를 검증한다")
         @Test
         void success() throws Exception {
-            given(tokenExtractor.extract(any())).willReturn(new UserTokenResponse(0L, "google", "Bearer", "token"));
+            given(tokenExtractor.extract(any())).willReturn(new ServiceToken(0L, "google", "Bearer", "token"));
             given(tokenRepository.findRefreshToken(any())).willReturn(Optional.of("refreshToken"));
 
             mockMvc.perform(get(URL)
@@ -82,7 +82,7 @@ class AuthInterceptorTest {
         @DisplayName("Redis 에 Refresh Token 이 없을 경우 예외가 발생한다")
         @Test
         void notExistRefreshToken() throws Exception {
-            given(tokenExtractor.extract(any())).willReturn(new UserTokenResponse(0L, "google", "Bearer", "token"));
+            given(tokenExtractor.extract(any())).willReturn(new ServiceToken(0L, "google", "Bearer", "token"));
             given(tokenRepository.findRefreshToken(any())).willReturn(Optional.empty());
 
             mockMvc.perform(get(URL)
@@ -103,7 +103,7 @@ class AuthInterceptorTest {
             void success() throws Exception {
                 final String refreshToken = "refreshToken";
 
-                given(tokenExtractor.extract(any())).willReturn(new UserTokenResponse(0L, "google", "Bearer", refreshToken));
+                given(tokenExtractor.extract(any())).willReturn(new ServiceToken(0L, "google", "Bearer", refreshToken));
                 given(tokenRepository.findRefreshToken(any())).willReturn(Optional.of(refreshToken));
 
                 mockMvc.perform(get(URL)
@@ -118,7 +118,7 @@ class AuthInterceptorTest {
                 final String refreshToken = "refreshToken";
                 final String savedRefreshToken = "savedRefreshToken";
 
-                given(tokenExtractor.extract(any())).willReturn(new UserTokenResponse(0L, "google", "Bearer", refreshToken));
+                given(tokenExtractor.extract(any())).willReturn(new ServiceToken(0L, "google", "Bearer", refreshToken));
                 given(tokenRepository.findRefreshToken(any())).willReturn(Optional.of(savedRefreshToken));
 
                 mockMvc.perform(get(URL)

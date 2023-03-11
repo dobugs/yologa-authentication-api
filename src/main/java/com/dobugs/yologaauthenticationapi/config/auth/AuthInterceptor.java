@@ -5,9 +5,9 @@ import java.lang.annotation.Annotation;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.config.exception.AuthorizationException;
 import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
-import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,10 +24,10 @@ public class AuthInterceptor implements HandlerInterceptor {
         if (!hasMethodAnnotation((HandlerMethod) handler, Authorized.class)) {
             return true;
         }
-        final String serviceToken = extractAuthorizationHeader(request);
-        final UserTokenResponse userTokenResponse = tokenExtractor.extract(serviceToken);
-        final String savedRefreshToken = findRefreshToken(userTokenResponse);
-        validateTheExistenceOfRefreshToken(userTokenResponse.token(), savedRefreshToken, handler);
+        final String jwt = extractAuthorizationHeader(request);
+        final ServiceToken serviceToken = tokenExtractor.extract(jwt);
+        final String savedRefreshToken = findRefreshToken(serviceToken);
+        validateTheExistenceOfRefreshToken(serviceToken.token(), savedRefreshToken, handler);
         return true;
     }
 
@@ -43,8 +43,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         return authorization;
     }
 
-    private String findRefreshToken(final UserTokenResponse userTokenResponse) {
-        return tokenRepository.findRefreshToken(userTokenResponse.memberId())
+    private String findRefreshToken(final ServiceToken serviceToken) {
+        return tokenRepository.findRefreshToken(serviceToken.memberId())
             .orElseThrow(() -> new AuthorizationException("로그인이 필요한 서비스입니다."));
     }
 
