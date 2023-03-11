@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
+import com.dobugs.yologaauthenticationapi.domain.JWTPayload;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -17,10 +18,6 @@ import io.jsonwebtoken.security.Keys;
 public class TokenExtractor {
 
     private static final String SERVICE_TOKEN_TYPE = "Bearer ";
-    private static final String PAYLOAD_NAME_OF_MEMBER_ID = "memberId";
-    private static final String PAYLOAD_NAME_OF_PROVIDER = "provider";
-    private static final String PAYLOAD_NAME_OF_TOKEN_TYPE = "tokenType";
-    private static final String PAYLOAD_NAME_OF_TOKEN = "token";
 
     private final SecretKey secretKey;
 
@@ -33,28 +30,21 @@ public class TokenExtractor {
     public ServiceToken extract(final String serviceToken) {
         final String jwt = serviceToken.replace(SERVICE_TOKEN_TYPE, "");
         final Claims claims = extractClaims(jwt);
-        final Long memberId = extractMemberId(claims);
-        final String provider = extractProvider(claims);
-        final String tokenType = extractTokenType(claims);
-        final String token = extractToken(claims);
-        return new ServiceToken(memberId, provider, tokenType, token);
+        return new ServiceToken(
+            extractMemberId(claims),
+            extract(claims, JWTPayload.PROVIDER),
+            extract(claims, JWTPayload.TOKEN_TYPE),
+            extract(claims, JWTPayload.TOKEN)
+        );
     }
 
     private Long extractMemberId(final Claims claims) {
-        final Integer memberId = (Integer)claims.get(PAYLOAD_NAME_OF_MEMBER_ID);
+        final Integer memberId = (Integer) claims.get(JWTPayload.MEMBER_ID.getName());
         return memberId.longValue();
     }
 
-    private String extractProvider(final Claims claims) {
-        return (String) claims.get(PAYLOAD_NAME_OF_PROVIDER);
-    }
-
-    private String extractTokenType(final Claims claims) {
-        return (String) claims.get(PAYLOAD_NAME_OF_TOKEN_TYPE);
-    }
-
-    private String extractToken(final Claims claims) {
-        return (String) claims.get(PAYLOAD_NAME_OF_TOKEN);
+    private String extract(final Claims claims, final JWTPayload jwtPayload) {
+        return (String) claims.get(jwtPayload.getName());
     }
 
     private Claims extractClaims(final String serviceToken) {

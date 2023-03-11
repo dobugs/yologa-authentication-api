@@ -8,6 +8,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.dobugs.yologaauthenticationapi.domain.JWTPayload;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
@@ -18,11 +19,6 @@ import io.jsonwebtoken.security.Keys;
 
 @Component
 public class TokenGenerator {
-
-    private static final String PAYLOAD_NAME_OF_MEMBER_ID = "memberId";
-    private static final String PAYLOAD_NAME_OF_PROVIDER = "provider";
-    private static final String PAYLOAD_NAME_OF_TOKEN_TYPE = "tokenType";
-    private static final String PAYLOAD_NAME_OF_TOKEN = "token";
 
     private final SecretKey secretKey;
     private final long accessTokenExpiresIn;
@@ -56,10 +52,10 @@ public class TokenGenerator {
         final Date issued = new Date();
         final Date expiration = new Date(issued.getTime() + expiresIn);
         return Jwts.builder()
-            .claim(PAYLOAD_NAME_OF_MEMBER_ID, memberId)
-            .claim(PAYLOAD_NAME_OF_PROVIDER, provider)
-            .claim(PAYLOAD_NAME_OF_TOKEN_TYPE, tokenType)
-            .claim(PAYLOAD_NAME_OF_TOKEN, token)
+            .claim(JWTPayload.MEMBER_ID.getName(), memberId)
+            .claim(JWTPayload.PROVIDER.getName(), provider)
+            .claim(JWTPayload.TOKEN_TYPE.getName(), tokenType)
+            .claim(JWTPayload.TOKEN.getName(), token)
             .setIssuedAt(issued)
             .setExpiration(expiration)
             .signWith(secretKey, SignatureAlgorithm.HS256)
