@@ -2,6 +2,7 @@ package com.dobugs.yologaauthenticationapi.config.auth;
 
 import java.lang.annotation.Annotation;
 
+import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -21,6 +22,9 @@ public class AuthInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(final HttpServletRequest request, final HttpServletResponse response, final Object handler) {
+        if (CorsUtils.isPreFlightRequest(request)) {
+            return true;
+        }
         if (!hasMethodAnnotation((HandlerMethod) handler, Authorized.class)) {
             return true;
         }
