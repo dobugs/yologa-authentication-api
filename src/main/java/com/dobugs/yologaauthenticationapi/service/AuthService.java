@@ -40,25 +40,24 @@ public class AuthService {
     @Transactional(readOnly = true)
     public OAuthLinkResponse generateOAuthUrl(final OAuthRequest request) {
         final OAuthConnector oAuthConnector = selectConnector(request.provider());
-        final String redirectUrl = decode(request.redirect_url());
-        final String referrer = decode(request.referrer());
-
-        final String oAuthUrl = oAuthConnector.generateOAuthUrl(redirectUrl, referrer);
+        final String oAuthUrl = oAuthConnector.generateOAuthUrl(
+            decode(request.redirect_url()),
+            decode(request.referrer())
+        );
         return new OAuthLinkResponse(oAuthUrl);
     }
 
     public ServiceTokenResponse login(final OAuthRequest request, final OAuthCodeRequest codeRequest) {
-        final String provider = request.provider();
-        final OAuthConnector oAuthConnector = selectConnector(provider);
-        final String redirectUrl = decode(request.redirect_url());
-        final String authorizationCode = decode(codeRequest.authorizationCode());
-
-        final OAuthTokenResponse oAuthTokenResponse = oAuthConnector.requestToken(authorizationCode, redirectUrl);
+        final OAuthConnector oAuthConnector = selectConnector(request.provider());
+        final OAuthTokenResponse oAuthTokenResponse = oAuthConnector.requestToken(
+            decode(codeRequest.authorizationCode()),
+            decode(request.redirect_url())
+        );
         final OAuthUserResponse oAuthUserResponse = oAuthConnector.requestUserInfo(oAuthTokenResponse.tokenType(), oAuthTokenResponse.accessToken());
 
         final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpExpiration(oAuthTokenResponse);
-        final Long memberId = saveMember(provider, oAuthTokenDto, oAuthUserResponse);
-        final ServiceTokenDto serviceTokenDto = tokenGenerator.create(memberId, provider, oAuthTokenDto);
+        final Long memberId = saveMember(request.provider(), oAuthTokenDto, oAuthUserResponse);
+        final ServiceTokenDto serviceTokenDto = tokenGenerator.create(memberId, request.provider(), oAuthTokenDto);
 
         return new ServiceTokenResponse(serviceTokenDto.accessToken(), serviceTokenDto.refreshToken());
     }
