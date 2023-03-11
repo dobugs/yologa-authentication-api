@@ -43,6 +43,18 @@ include::{snippets}/auth/logout/http-response.adoc[]
 |===
 | | 상태코드 | 비고
 
+| JWT 필요
+| 401
+| JWT 가 필요한 기능인데 Header 에 JWT 가 없는 경우
+
+| 로그인 필요
+| 401
+| JWT 저장소에 요청한 JWT 가 없는 경우
+
+| Refresh Token 불일치
+| 401
+| Access Token 재발급 시 요청한 Refresh Token 과 JWT 저장소에 저장된 토큰이 다를 경우
+
 | 잘못된 형식의 JWT
 | 401
 | JWT 형식이 아닌 경우
