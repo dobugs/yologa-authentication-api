@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dobugs.yologaauthenticationapi.config.auth.Authorized;
+import com.dobugs.yologaauthenticationapi.config.auth.ExtractAuthorization;
+import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.service.MemberService;
 import com.dobugs.yologaauthenticationapi.service.dto.request.MemberUpdateRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.MemberResponse;
@@ -32,25 +34,25 @@ public class MemberController {
 
     @Authorized
     @GetMapping("/me")
-    public ResponseEntity<MemberResponse> findMe(@RequestHeader("Authorization") final String accessToken) {
-        final MemberResponse response = memberService.findMe(accessToken);
+    public ResponseEntity<MemberResponse> findMe(@ExtractAuthorization final ServiceToken serviceToken) {
+        final MemberResponse response = memberService.findMe(serviceToken);
         return ResponseEntity.ok(response);
     }
 
     @Authorized
     @PostMapping
     public ResponseEntity<Void> update(
-        @RequestHeader("Authorization") final String accessToken,
+        @ExtractAuthorization final ServiceToken serviceToken,
         @RequestBody final MemberUpdateRequest request
     ) {
-        memberService.update(accessToken, request);
+        memberService.update(serviceToken, request);
         return ResponseEntity.ok().build();
     }
 
     @Authorized
     @DeleteMapping
-    public ResponseEntity<Void> delete(@RequestHeader("Authorization") final String accessToken) {
-        memberService.delete(accessToken);
+    public ResponseEntity<Void> delete(@ExtractAuthorization final ServiceToken serviceToken) {
+        memberService.delete(serviceToken);
         return ResponseEntity.ok().build();
     }
 }

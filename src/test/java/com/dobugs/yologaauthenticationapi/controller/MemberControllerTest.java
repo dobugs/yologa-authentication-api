@@ -1,5 +1,6 @@
 package com.dobugs.yologaauthenticationapi.controller;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -53,16 +54,14 @@ class MemberControllerTest extends ControllerTest {
     @DisplayName("JWT 를 이용하여 내 정보를 조회한다")
     @Test
     void findMe() throws Exception {
-        final String accessToken = "accessToken";
-
         final MemberResponse response = new MemberResponse(
             0L, "0123456789", "유콩", "010-0000-0000",
             "https://lh3.googleusercontent.com/a/AEdFTp6-48aO-w67aAJcYb22G0BLTvY23z4uMBb1Nec=s96-c"
         );
-        given(memberService.findMe(accessToken)).willReturn(response);
+        given(memberService.findMe(any())).willReturn(response);
 
         mockMvc.perform(get(BASIC_URL + "/me")
-                .header("Authorization", accessToken))
+                .header("Authorization", "accessToken"))
             .andExpect(status().isOk())
             .andDo(document(
                 "member/find-me",

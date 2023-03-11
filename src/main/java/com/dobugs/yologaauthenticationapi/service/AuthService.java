@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.domain.Member;
 import com.dobugs.yologaauthenticationapi.domain.OAuthToken;
 import com.dobugs.yologaauthenticationapi.domain.Provider;
@@ -22,7 +23,6 @@ import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.dto.response.OAuthUserResponse;
-import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -63,29 +63,22 @@ public class AuthService {
         return new ServiceTokenResponse(serviceTokenDto.accessToken(), serviceTokenDto.refreshToken());
     }
 
-    public ServiceTokenResponse reissue(final String serviceToken) {
-        final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
-        final OAuthConnector oAuthConnector = selectConnector(userTokenResponse.provider());
-        final String refreshToken = decode(userTokenResponse.token());
+    public ServiceTokenResponse reissue(final ServiceToken serviceToken) {
+        final OAuthConnector oAuthConnector = selectConnector(serviceToken.provider());
 
-        validateTheExistenceOfRefreshToken(userTokenResponse.memberId(), refreshToken);
-        final OAuthTokenResponse response = oAuthConnector.requestAccessToken(refreshToken);
+        final OAuthTokenResponse response = oAuthConnector.requestAccessToken(serviceToken.token());
         final OAuthTokenDto oAuthTokenDto = tokenGenerator.setUpExpiration(response);
-        restoreRefreshToken(userTokenResponse.memberId(), oAuthTokenDto.refreshToken());
-        final ServiceTokenDto serviceTokenDto = tokenGenerator.create(userTokenResponse.memberId(), userTokenResponse.provider(), oAuthTokenDto);
+        restoreRefreshToken(serviceToken.memberId(), oAuthTokenDto.refreshToken());
+        final ServiceTokenDto serviceTokenDto = tokenGenerator.create(serviceToken.memberId(), serviceToken.provider(), oAuthTokenDto);
         return new ServiceTokenResponse(serviceTokenDto.accessToken(), serviceTokenDto.refreshToken());
     }
 
-    public void logout(final String serviceToken) {
-        final UserTokenResponse userTokenResponse = tokenGenerator.extract(serviceToken);
-        final OAuthConnector oAuthConnector = selectConnector(userTokenResponse.provider());
-        final Long memberId = userTokenResponse.memberId();
+    public void logout(final ServiceToken serviceToken) {
+        final OAuthConnector oAuthConnector = selectConnector(serviceToken.provider());
 
-        final String accessToken = userTokenResponse.token();
-        final String refreshToken = findRefreshToken(memberId);
-        final String tokenType = userTokenResponse.tokenType();
-        tokenRepository.delete(memberId);
-        oAuthConnector.logout(new OAuthLogoutRequest(accessToken, refreshToken, tokenType));
+        final String refreshToken = findRefreshToken(serviceToken.memberId());
+        tokenRepository.delete(serviceToken.memberId());
+        oAuthConnector.logout(new OAuthLogoutRequest(serviceToken.token(), refreshToken, serviceToken.tokenType()));
     }
 
     private Long saveMember(final String provider, final OAuthTokenDto oAuthTokenDto, final OAuthUserResponse OAuthUserResponse) {
@@ -123,13 +116,6 @@ public class AuthService {
     private String findRefreshToken(final Long memberId) {
         return tokenRepository.findRefreshToken(memberId)
             .orElseThrow(() -> new IllegalArgumentException(String.format("로그인이 필요합니다. [%d]", memberId)));
-    }
-
-    private void validateTheExistenceOfRefreshToken(final Long memberId, final String refreshToken) {
-        final String savedRefreshToken = findRefreshToken(memberId);
-        if (!savedRefreshToken.equals(refreshToken)) {
-            throw new IllegalArgumentException("잘못된 refresh token 입니다.");
-        }
     }
 
     private OAuthConnector selectConnector(final String provider) {

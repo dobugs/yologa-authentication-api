@@ -16,8 +16,8 @@ import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.dobugs.yologaauthenticationapi.config.auth.TokenExtractor;
+import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
-import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @AutoConfigureMockMvc
@@ -41,7 +41,7 @@ public class ControllerTest {
     void setUp() {
         final String token = "token";
 
-        given(tokenExtractor.extract(any())).willReturn(new UserTokenResponse(0L, "google", "Bearer", token));
+        given(tokenExtractor.extract(any())).willReturn(new ServiceToken(0L, "google", "Bearer", token));
         given(tokenRepository.findRefreshToken(any())).willReturn(Optional.of(token));
     }
 }

@@ -92,7 +92,7 @@ class AuthControllerTest extends ControllerTest {
         final String refreshToken = "refreshToken";
 
         final ServiceTokenResponse response = new ServiceTokenResponse(accessToken, refreshToken);
-        given(authService.reissue(refreshToken)).willReturn(response);
+        given(authService.reissue(any())).willReturn(response);
 
         mockMvc.perform(post(BASIC_URL + "/reissue")
                 .header("Authorization", refreshToken))

@@ -16,13 +16,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.domain.Member;
 import com.dobugs.yologaauthenticationapi.domain.Provider;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
 import com.dobugs.yologaauthenticationapi.service.dto.request.MemberUpdateRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.MemberResponse;
-import com.dobugs.yologaauthenticationapi.support.TokenGenerator;
-import com.dobugs.yologaauthenticationapi.support.dto.response.UserTokenResponse;
 import com.dobugs.yologaauthenticationapi.support.fixture.ServiceTokenFixture;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,12 +33,9 @@ class MemberServiceTest {
     @Mock
     private MemberRepository memberRepository;
 
-    @Mock
-    private TokenGenerator tokenGenerator;
-
     @BeforeEach
     void setUp() {
-        memberService = new MemberService(memberRepository, tokenGenerator);
+        memberService = new MemberService(memberRepository);
     }
 
     @DisplayName("사용자 정보 조회 테스트")
@@ -76,21 +72,17 @@ class MemberServiceTest {
     public class findMe {
 
         private static final Long MEMBER_ID = 0L;
-        private static final String PROVIDER = Provider.GOOGLE.getName();
-        private static final String TOKEN_TYPE = "Bearer";
-        private static final String ACCESS_TOKEN = "accessToken";
 
-        private String serviceToken;
+        private ServiceToken serviceToken;
 
         @BeforeEach
         void setUp() {
             serviceToken = new ServiceTokenFixture.Builder()
                 .memberId(MEMBER_ID)
-                .provider(PROVIDER)
-                .tokenType(TOKEN_TYPE)
-                .token(ACCESS_TOKEN)
+                .provider(Provider.GOOGLE.getName())
+                .tokenType("Bearer")
+                .token("accessToken")
                 .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
         }
 
         @DisplayName("JWT 를 이용하여 사용자 정보를 조회한다")
@@ -119,25 +111,20 @@ class MemberServiceTest {
     public class update {
 
         private static final Long MEMBER_ID = 0L;
-        private static final String PROVIDER = Provider.GOOGLE.getName();
-        private static final String TOKEN_TYPE = "Bearer";
-        private static final String ACCESS_TOKEN = "accessToken";
         private static final String NICKNAME = "유콩";
         private static final String PHONE_NUMBER = "010-0000-0000";
 
-        private String serviceToken;
+        private ServiceToken serviceToken;
         private MemberUpdateRequest request;
 
         @BeforeEach
         void setUp() {
             serviceToken = new ServiceTokenFixture.Builder()
                 .memberId(MEMBER_ID)
-                .provider(PROVIDER)
-                .tokenType(TOKEN_TYPE)
-                .token(ACCESS_TOKEN)
+                .provider(Provider.GOOGLE.getName())
+                .tokenType("Bearer")
+                .token("accessToken")
                 .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
-
             request = new MemberUpdateRequest(NICKNAME, PHONE_NUMBER);
         }
 
@@ -169,21 +156,17 @@ class MemberServiceTest {
     public class delete {
 
         private static final Long MEMBER_ID = 0L;
-        private static final String PROVIDER = Provider.GOOGLE.getName();
-        private static final String TOKEN_TYPE = "Bearer";
-        private static final String ACCESS_TOKEN = "accessToken";
 
-        private String serviceToken;
+        private ServiceToken serviceToken;
 
         @BeforeEach
         void setUp() {
             serviceToken = new ServiceTokenFixture.Builder()
                 .memberId(MEMBER_ID)
-                .provider(PROVIDER)
-                .tokenType(TOKEN_TYPE)
-                .token(ACCESS_TOKEN)
+                .provider(Provider.GOOGLE.getName())
+                .tokenType("Bearer")
+                .token("accessToken")
                 .build();
-            given(tokenGenerator.extract(serviceToken)).willReturn(new UserTokenResponse(MEMBER_ID, PROVIDER, TOKEN_TYPE, ACCESS_TOKEN));
         }
 
         @DisplayName("탈퇴한다")

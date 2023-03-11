@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
+
 @RequestMapping("/api")
 @RestController
 public class FakeController {
@@ -24,6 +26,11 @@ public class FakeController {
     @ValidatedRefreshToken
     @GetMapping("/hasValidatedRefreshTokenAnnotation")
     public ResponseEntity<Void> hasValidatedRefreshTokenAnnotation() {
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/hasLoginUserAnnotation")
+    public ResponseEntity<Void> hasLoginUserAnnotation(@ExtractAuthorization final ServiceToken serviceToken) {
         return ResponseEntity.ok().build();
     }
 }

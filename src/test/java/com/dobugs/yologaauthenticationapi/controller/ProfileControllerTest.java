@@ -1,5 +1,7 @@
 package com.dobugs.yologaauthenticationapi.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.delete;
@@ -30,7 +32,6 @@ class ProfileControllerTest extends ControllerTest {
     @DisplayName("프로필을 수정한다")
     @Test
     void update() throws Exception {
-        final String accessToken = "accessToken";
         final MockMultipartFile newProfile = new MockMultipartFile(
             "profile",
             "최종_최종_최종_프로필.png",
@@ -38,10 +39,10 @@ class ProfileControllerTest extends ControllerTest {
             "new profile content".getBytes()
         );
 
-        given(profileService.update(accessToken, newProfile)).willReturn("profileUrl");
+        given(profileService.update(any(), eq(newProfile))).willReturn("profileUrl");
 
         mockMvc.perform(multipart(BASIC_URL).file(newProfile)
-                .header("Authorization", accessToken))
+                .header("Authorization", "accessToken"))
             .andExpect(status().isCreated())
             .andDo(document(
                 "profile/update",
