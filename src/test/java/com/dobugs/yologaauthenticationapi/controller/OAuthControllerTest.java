@@ -18,19 +18,19 @@ import org.springframework.http.MediaType;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import com.dobugs.yologaauthenticationapi.service.AuthService;
+import com.dobugs.yologaauthenticationapi.service.OAuthService;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
 import com.dobugs.yologaauthenticationapi.service.dto.response.ServiceTokenResponse;
 
-@WebMvcTest(AuthController.class)
-@DisplayName("Auth 컨트롤러 테스트")
-class AuthControllerTest extends ControllerTest {
+@WebMvcTest(OAuthController.class)
+@DisplayName("OAuth 컨트롤러 테스트")
+class OAuthControllerTest extends ControllerTest {
 
     private static final String BASIC_URL = "/api/v1/oauth2";
 
     @MockBean
-    private AuthService authService;
+    private OAuthService oAuthService;
 
     @DisplayName("OAuth 로그인 URL 을 생성한다")
     @Test
@@ -43,7 +43,7 @@ class AuthControllerTest extends ControllerTest {
         params.add("referrer", "referrer");
 
         final OAuthLinkResponse response = new OAuthLinkResponse(redirectUrl);
-        given(authService.generateOAuthUrl(any())).willReturn(response);
+        given(oAuthService.generateOAuthUrl(any())).willReturn(response);
 
         mockMvc.perform(get(BASIC_URL + "/login")
                 .params(params))
@@ -70,7 +70,7 @@ class AuthControllerTest extends ControllerTest {
         final String body = objectMapper.writeValueAsString(request);
 
         final ServiceTokenResponse response = new ServiceTokenResponse("accessToken", "refreshToken");
-        given(authService.login(any(), any())).willReturn(response);
+        given(oAuthService.login(any(), any())).willReturn(response);
 
         mockMvc.perform(post(BASIC_URL + "/login")
                 .params(params)
@@ -92,7 +92,7 @@ class AuthControllerTest extends ControllerTest {
         final String refreshToken = "refreshToken";
 
         final ServiceTokenResponse response = new ServiceTokenResponse(accessToken, refreshToken);
-        given(authService.reissue(any())).willReturn(response);
+        given(oAuthService.reissue(any())).willReturn(response);
 
         mockMvc.perform(post(BASIC_URL + "/reissue")
                 .header("Authorization", refreshToken))

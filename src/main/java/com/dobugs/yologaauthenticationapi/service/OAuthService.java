@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 @Service
-public class AuthService {
+public class OAuthService {
 
     private final OAuthConnector googleConnector;
     private final OAuthConnector kakaoConnector;

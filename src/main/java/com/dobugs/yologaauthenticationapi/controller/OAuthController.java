@@ -12,7 +12,7 @@ import com.dobugs.yologaauthenticationapi.config.auth.Authorized;
 import com.dobugs.yologaauthenticationapi.config.auth.ExtractAuthorization;
 import com.dobugs.yologaauthenticationapi.config.auth.ValidatedRefreshToken;
 import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
-import com.dobugs.yologaauthenticationapi.service.AuthService;
+import com.dobugs.yologaauthenticationapi.service.OAuthService;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthRequest;
 import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
@@ -23,13 +23,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/oauth2")
 @RestController
-public class AuthController {
+public class OAuthController {
 
-    private final AuthService authService;
+    private final OAuthService oAuthService;
 
     @GetMapping("/login")
     public ResponseEntity<OAuthLinkResponse> generateOAuthUrl(@ModelAttribute final OAuthRequest request) {
-        final OAuthLinkResponse response = authService.generateOAuthUrl(request);
+        final OAuthLinkResponse response = oAuthService.generateOAuthUrl(request);
         return ResponseEntity.ok(response);
     }
 
@@ -38,7 +38,7 @@ public class AuthController {
         @ModelAttribute final OAuthRequest request,
         @RequestBody final OAuthCodeRequest codeRequest
     ) {
-        final ServiceTokenResponse response = authService.login(request, codeRequest);
+        final ServiceTokenResponse response = oAuthService.login(request, codeRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -46,14 +46,14 @@ public class AuthController {
     @ValidatedRefreshToken
     @PostMapping("/reissue")
     public ResponseEntity<ServiceTokenResponse> reissue(@ExtractAuthorization final ServiceToken serviceToken) {
-        final ServiceTokenResponse response = authService.reissue(serviceToken);
+        final ServiceTokenResponse response = oAuthService.reissue(serviceToken);
         return ResponseEntity.ok(response);
     }
 
     @Authorized
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@ExtractAuthorization final ServiceToken serviceToken) {
-        authService.logout(serviceToken);
+        oAuthService.logout(serviceToken);
         return ResponseEntity.ok().build();
     }
 }
