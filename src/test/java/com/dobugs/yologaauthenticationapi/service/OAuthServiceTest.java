@@ -20,7 +20,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
+import com.dobugs.yologaauthenticationapi.auth.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.domain.Member;
 import com.dobugs.yologaauthenticationapi.domain.Provider;
 import com.dobugs.yologaauthenticationapi.repository.MemberRepository;
@@ -37,13 +37,13 @@ import com.dobugs.yologaauthenticationapi.support.dto.response.ServiceTokenDto;
 import com.dobugs.yologaauthenticationapi.support.fixture.ServiceTokenFixture;
 
 @ExtendWith(MockitoExtension.class)
-@DisplayName("Auth 서비스 테스트")
-class AuthServiceTest {
+@DisplayName("OAuth 서비스 테스트")
+class OAuthServiceTest {
 
     private static final String REDIRECT_URL = "https://yologa.dobugs.co.kr";
     private static final String REFERRER_URL = "https://yologa.dobugs.co.kr";
 
-    private AuthService authService;
+    private OAuthService oAuthService;
 
     @Mock
     private MemberRepository memberRepository;
@@ -57,7 +57,7 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         final OAuthConnector connector = new FakeOAuthConnector();
-        authService = new AuthService(connector, connector, memberRepository, tokenRepository, tokenGenerator);
+        oAuthService = new OAuthService(connector, connector, memberRepository, tokenRepository, tokenGenerator);
     }
 
     @DisplayName("OAuth URL 생성 테스트")
@@ -70,7 +70,7 @@ class AuthServiceTest {
         void success(final String provider) {
             final OAuthRequest request = new OAuthRequest(provider, REDIRECT_URL, REFERRER_URL);
 
-            final OAuthLinkResponse response = authService.generateOAuthUrl(request);
+            final OAuthLinkResponse response = oAuthService.generateOAuthUrl(request);
 
             assertThat(response.oauthLoginLink()).contains(REDIRECT_URL);
         }
@@ -81,7 +81,7 @@ class AuthServiceTest {
             final String provider = "notExistProvider";
             final OAuthRequest request = new OAuthRequest(provider, REDIRECT_URL, REFERRER_URL);
 
-            assertThatThrownBy(() -> authService.generateOAuthUrl(request))
+            assertThatThrownBy(() -> oAuthService.generateOAuthUrl(request))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("잘못된 provider 입니다.");
         }
@@ -108,7 +108,7 @@ class AuthServiceTest {
             given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, TOKEN_TYPE));
             given(tokenGenerator.create(any(), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
-            final ServiceTokenResponse response = authService.login(request, codeRequest);
+            final ServiceTokenResponse response = oAuthService.login(request, codeRequest);
 
             assertAll(
                 () -> assertThat(response.accessToken()).isEqualTo(ACCESS_TOKEN),
@@ -124,7 +124,7 @@ class AuthServiceTest {
             final OAuthRequest request = new OAuthRequest(notExistProvider, REDIRECT_URL, REFERRER_URL);
             final OAuthCodeRequest codeRequest = new OAuthCodeRequest(AUTHORIZATION_CODE);
 
-            assertThatThrownBy(() -> authService.login(request, codeRequest))
+            assertThatThrownBy(() -> oAuthService.login(request, codeRequest))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("잘못된 provider 입니다.");
         }
@@ -140,7 +140,7 @@ class AuthServiceTest {
             given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, TOKEN_TYPE));
             given(tokenGenerator.create(any(), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
-            final ServiceTokenResponse response = authService.login(request, codeRequest);
+            final ServiceTokenResponse response = oAuthService.login(request, codeRequest);
 
             assertAll(
                 () -> assertThat(response.accessToken()).isEqualTo(ACCESS_TOKEN),
@@ -173,7 +173,7 @@ class AuthServiceTest {
             given(tokenGenerator.setUpExpiration(any())).willReturn(new OAuthTokenDto(ACCESS_TOKEN, EXPIRES_IN, REFRESH_TOKEN, EXPIRES_IN, TOKEN_TYPE));
             given(tokenGenerator.create(eq(MEMBER_ID), eq(provider), any())).willReturn(new ServiceTokenDto(ACCESS_TOKEN, REFRESH_TOKEN));
 
-            assertThatCode(() -> authService.reissue(serviceToken))
+            assertThatCode(() -> oAuthService.reissue(serviceToken))
                 .doesNotThrowAnyException();
         }
 
@@ -189,7 +189,7 @@ class AuthServiceTest {
                 .token(REFRESH_TOKEN)
                 .build();
 
-            assertThatThrownBy(() -> authService.reissue(serviceToken))
+            assertThatThrownBy(() -> oAuthService.reissue(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("잘못된 provider 입니다.");
         }
@@ -216,7 +216,7 @@ class AuthServiceTest {
                 .build();
             given(tokenRepository.findRefreshToken(MEMBER_ID)).willReturn(Optional.of(ACCESS_TOKEN));
 
-            assertThatCode(() -> authService.logout(serviceToken))
+            assertThatCode(() -> oAuthService.logout(serviceToken))
                 .doesNotThrowAnyException();
         }
 
@@ -233,7 +233,7 @@ class AuthServiceTest {
                 .build();
             given(tokenRepository.findRefreshToken(notExistMemberId)).willReturn(Optional.empty());
 
-            assertThatThrownBy(() -> authService.logout(serviceToken))
+            assertThatThrownBy(() -> oAuthService.logout(serviceToken))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("로그인이 필요합니다.");
         }

@@ -1,4 +1,4 @@
-package com.dobugs.yologaauthenticationapi.config.auth;
+package com.dobugs.yologaauthenticationapi.auth;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,5 +7,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Authorized {
+public @interface ValidatedRefreshToken {
 }

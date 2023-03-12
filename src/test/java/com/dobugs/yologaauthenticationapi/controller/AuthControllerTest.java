@@ -1,123 +1,84 @@
 package com.dobugs.yologaauthenticationapi.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.post;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.springframework.test.web.servlet.MockMvc;
 
-import com.dobugs.yologaauthenticationapi.service.AuthService;
-import com.dobugs.yologaauthenticationapi.service.dto.request.OAuthCodeRequest;
-import com.dobugs.yologaauthenticationapi.service.dto.response.OAuthLinkResponse;
-import com.dobugs.yologaauthenticationapi.service.dto.response.ServiceTokenResponse;
+import com.dobugs.yologaauthenticationapi.auth.TokenExtractor;
+import com.dobugs.yologaauthenticationapi.auth.dto.response.ServiceToken;
+import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
 
+@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 @WebMvcTest(AuthController.class)
 @DisplayName("Auth 컨트롤러 테스트")
-class AuthControllerTest extends ControllerTest {
+class AuthControllerTest {
 
-    private static final String BASIC_URL = "/api/v1/oauth2";
+    private static final String BASIC_URL = "/api/v1/auth";
+
+    @Autowired
+    private MockMvc mockMvc;
 
     @MockBean
-    private AuthService authService;
+    private TokenExtractor tokenExtractor;
 
-    @DisplayName("OAuth 로그인 URL 을 생성한다")
-    @Test
-    void generateOAuthUrl() throws Exception {
-        final String redirectUrl = "redirectUrl";
+    @MockBean
+    private TokenRepository tokenRepository;
 
-        final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("provider", "google");
-        params.add("redirect_url", redirectUrl);
-        params.add("referrer", "referrer");
+    @DisplayName("JWT 검증 테스트")
+    @Nested
+    public class validate {
 
-        final OAuthLinkResponse response = new OAuthLinkResponse(redirectUrl);
-        given(authService.generateOAuthUrl(any())).willReturn(response);
+        private static final String URL = BASIC_URL + "/login";
 
-        mockMvc.perform(get(BASIC_URL + "/login")
-                .params(params))
-            .andExpect(status().isOk())
-            .andDo(document(
-                "auth/generate-OAuth-url",
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()))
-            )
-        ;
-    }
+        @DisplayName("JWT 를 검증한다")
+        @Test
+        void success() throws Exception {
+            given(tokenExtractor.extract(any())).willReturn(new ServiceToken(0L, "google", "Bearer", "token"));
+            given(tokenRepository.findRefreshToken(any())).willReturn(Optional.of("refreshToken"));
 
-    @DisplayName("OAuth 로그인 시 토큰을 요청한다")
-    @Test
-    void login() throws Exception {
-        final String redirectUrl = "redirectUrl";
+            mockMvc.perform(post(URL)
+                    .header("Authorization", "token"))
+                .andExpect(status().isOk())
+            ;
+        }
 
-        final MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("provider", "google");
-        params.add("redirect_url", redirectUrl);
-        params.add("referrer", "referrer");
+        @DisplayName("Authorization 헤더에 JWT 가 없을 경우 예외가 발생한다")
+        @Test
+        void notExistAuthorizationHeader() throws Exception {
+            mockMvc.perform(post(URL))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message", containsString("토큰이 필요합니다.")))
+            ;
+        }
 
-        final OAuthCodeRequest request = new OAuthCodeRequest("authorizationCode");
-        final String body = objectMapper.writeValueAsString(request);
+        @DisplayName("Redis 에 Refresh Token 이 없을 경우 예외가 발생한다")
+        @Test
+        void notExistRefreshToken() throws Exception {
+            given(tokenExtractor.extract(any())).willReturn(new ServiceToken(0L, "google", "Bearer", "token"));
+            given(tokenRepository.findRefreshToken(any())).willReturn(Optional.empty());
 
-        final ServiceTokenResponse response = new ServiceTokenResponse("accessToken", "refreshToken");
-        given(authService.login(any(), any())).willReturn(response);
-
-        mockMvc.perform(post(BASIC_URL + "/login")
-                .params(params)
-                .content(body)
-                .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andDo(document(
-                "auth/login",
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()))
-            )
-        ;
-    }
-
-    @DisplayName("Access Token 을 재발급받는다")
-    @Test
-    void reissue() throws Exception {
-        final String accessToken = "accessToken";
-        final String refreshToken = "refreshToken";
-
-        final ServiceTokenResponse response = new ServiceTokenResponse(accessToken, refreshToken);
-        given(authService.reissue(any())).willReturn(response);
-
-        mockMvc.perform(post(BASIC_URL + "/reissue")
-                .header("Authorization", refreshToken))
-            .andExpect(status().isOk())
-            .andDo(document(
-                "auth/reissue",
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()))
-            )
-        ;
-    }
-
-    @DisplayName("로그아웃한다")
-    @Test
-    void logout() throws Exception {
-        final String accessToken = "accessToken";
-
-        mockMvc.perform(post(BASIC_URL + "/logout")
-                .header("Authorization", accessToken))
-            .andExpect(status().isOk())
-            .andDo(document(
-                "auth/logout",
-                preprocessRequest(prettyPrint()),
-                preprocessResponse(prettyPrint()))
-            )
-        ;
+            mockMvc.perform(post(URL)
+                    .header("Authorization", "token"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message", containsString("로그인이 필요한 서비스입니다.")))
+            ;
+        }
     }
 }

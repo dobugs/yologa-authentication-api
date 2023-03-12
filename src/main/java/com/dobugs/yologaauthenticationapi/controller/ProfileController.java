@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.dobugs.yologaauthenticationapi.config.auth.Authorized;
-import com.dobugs.yologaauthenticationapi.config.auth.ExtractAuthorization;
-import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
+import com.dobugs.yologaauthenticationapi.auth.Authorized;
+import com.dobugs.yologaauthenticationapi.auth.ExtractAuthorization;
+import com.dobugs.yologaauthenticationapi.auth.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.service.ProfileService;
 
 import lombok.RequiredArgsConstructor;

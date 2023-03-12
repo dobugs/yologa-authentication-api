@@ -1,4 +1,4 @@
-package com.dobugs.yologaauthenticationapi.config.auth;
+package com.dobugs.yologaauthenticationapi.auth;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -9,7 +9,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
-import com.dobugs.yologaauthenticationapi.config.exception.AuthorizationException;
+import com.dobugs.yologaauthenticationapi.auth.exception.AuthorizationException;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class TokenResolver implements HandlerMethodArgumentResolver {
     @Override
     public Object resolveArgument(
         final MethodParameter parameter, final ModelAndViewContainer mavContainer,
-        final NativeWebRequest webRequest, final WebDataBinderFactory binderFactory) throws Exception {
+        final NativeWebRequest webRequest, final WebDataBinderFactory binderFactory) {
         final HttpServletRequest request = (HttpServletRequest)webRequest.getNativeRequest();
         return tokenExtractor.extract(extractAuthorizationHeader(request));
     }

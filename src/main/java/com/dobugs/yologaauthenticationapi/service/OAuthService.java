@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
+import com.dobugs.yologaauthenticationapi.auth.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.domain.Member;
 import com.dobugs.yologaauthenticationapi.domain.OAuthToken;
 import com.dobugs.yologaauthenticationapi.domain.Provider;
@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 @Service
-public class AuthService {
+public class OAuthService {
 
     private final OAuthConnector googleConnector;
     private final OAuthConnector kakaoConnector;

@@ -16,7 +16,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
+import com.dobugs.yologaauthenticationapi.auth.TokenExtractor;
+import com.dobugs.yologaauthenticationapi.auth.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.repository.TokenRepository;
 
 @AutoConfigureMockMvc
@@ -52,9 +53,9 @@ class TokenResolverTest {
 
     @DisplayName("@ExtractAuthorization 어노테이션이 있는 경우 테스트")
     @Nested
-    public class hasLoginUserAnnotation {
+    public class hasExtractAuthorizationAnnotation {
 
-        private static final String URL = BASIC_URL + "/hasLoginUserAnnotation";
+        private static final String URL = BASIC_URL + "/hasExtractAuthorizationAnnotation";
 
         @DisplayName("@ExtractAuthorization 어노테이션이 있을 경우 객체를 추출한다")
         @Test

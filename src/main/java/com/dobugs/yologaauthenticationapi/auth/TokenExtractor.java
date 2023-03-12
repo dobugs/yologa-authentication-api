@@ -1,4 +1,4 @@
-package com.dobugs.yologaauthenticationapi.config.auth;
+package com.dobugs.yologaauthenticationapi.auth;
 
 import java.nio.charset.StandardCharsets;
 
@@ -7,7 +7,7 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.dobugs.yologaauthenticationapi.config.dto.response.ServiceToken;
+import com.dobugs.yologaauthenticationapi.auth.dto.response.ServiceToken;
 import com.dobugs.yologaauthenticationapi.domain.JWTPayload;
 
 import io.jsonwebtoken.Claims;
