@@ -16,12 +16,20 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(final CorsRegistry registry) {
-        registry.addMapping("/**")
-            .allowedOrigins("*")
-            .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-            .maxAge(3000);
+        allowYologaForAuth(registry);
+        allowGlobal(registry);
+    }
+
+    private void allowYologaForAuth(final CorsRegistry registry) {
         registry.addMapping(path)
             .allowedOrigins(yologa)
+            .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+            .maxAge(3000);
+    }
+
+    private void allowGlobal(final CorsRegistry registry) {
+        registry.addMapping("/**")
+            .allowedOrigins("*")
             .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             .maxAge(3000);
     }
