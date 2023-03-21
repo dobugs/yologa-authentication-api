@@ -1,5 +1,6 @@
 .gradle
 build/
+log/
 src/main/resources/static/docs/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
