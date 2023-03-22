@@ -16,8 +16,14 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(final CorsRegistry registry) {
+        allowLocalhostForTest(registry);
         allowYologaForAuth(registry);
         allowGlobal(registry);
+    }
+
+    private void allowLocalhostForTest(final CorsRegistry registry) {
+        registry.addMapping("/api/vi/test/**")
+            .allowedOrigins("http://localhost");
     }
 
     private void allowYologaForAuth(final CorsRegistry registry) {
