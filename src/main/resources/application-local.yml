@@ -5,3 +5,5 @@ spring:
     import:
       - application-local-redis.yml
       - application-local-db.yml
+server:
+  port: 8081
