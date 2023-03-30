@@ -9,3 +9,5 @@ spring:
       - yologa-security/application-jwt.yml
       - yologa-security/application-oauth2.yml
       - yologa-security/application-slack.yml
+server:
+  port: 8081
