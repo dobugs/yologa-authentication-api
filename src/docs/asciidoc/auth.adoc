@@ -1,0 +1,73 @@
+= 인증 API
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 2
+
+== OAuth2.0 로그인 URL 요청
+Request
+include::{snippets}/auth/generate-OAuth-url/http-request.adoc[]
+Response
+include::{snippets}/auth/generate-OAuth-url/http-response.adoc[]
+
+== OAuth2.0 로그인 토큰 요청
+Request
+include::{snippets}/auth/login/http-request.adoc[]
+Response
+include::{snippets}/auth/login/http-response.adoc[]
+
+== OAuth2.0 Access Token 재발급
+Request
+include::{snippets}/auth/reissue/http-request.adoc[]
+Response
+include::{snippets}/auth/reissue/http-response.adoc[]
+
+== OAuth2.0 로그아웃
+Request
+include::{snippets}/auth/logout/http-request.adoc[]
+Response
+include::{snippets}/auth/logout/http-response.adoc[]
+
+== 예외처리
+=== OAuth
+|===
+| | 상태코드 | 비고
+
+| 외부 서버 연결 실패
+| 500
+|
+|===
+
+=== Token
+|===
+| | 상태코드 | 비고
+
+| JWT 필요
+| 401
+| JWT 가 필요한 기능인데 Header 에 JWT 가 없는 경우
+
+| 로그인 필요
+| 401
+| JWT 저장소에 요청한 JWT 가 없는 경우
+
+| Refresh Token 불일치
+| 401
+| Access Token 재발급 시 요청한 Refresh Token 과 JWT 저장소에 저장된 토큰이 다를 경우
+
+| 잘못된 형식의 JWT
+| 401
+| JWT 형식이 아닌 경우
+
+| 지원하지 않는 JWT
+| 401
+| 서명이 안되어 있는 경우
+
+| 다른 서버의 JWT
+| 401
+| 서명이 다른 경우
+
+| 토큰 만료
+| 401
+| 토큰의 만료 기한이 지난 경우
+|===

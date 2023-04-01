@@ -1,0 +1,7 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+    import:
+      - yologa-security/application-dev-redis.yml
+      - yologa-security/application-dev-db.yml

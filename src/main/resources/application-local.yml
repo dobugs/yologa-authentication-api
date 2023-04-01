@@ -1,0 +1,7 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+    import:
+      - application-local-redis.yml
+      - application-local-db.yml
