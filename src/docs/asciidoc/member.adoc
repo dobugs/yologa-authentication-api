@@ -1,0 +1,56 @@
+= 사용자 API
+:doctype: book
+:icons: font
+:source-highlighter: highlightjs
+:toc: left
+:toclevels: 2
+
+== 사용자 정보 조회
+Request
+include::{snippets}/member/find-by-id/http-request.adoc[]
+Response
+include::{snippets}/member/find-by-id/http-response.adoc[]
+
+== 내 정보 조회
+Request
+include::{snippets}/member/find-me/http-request.adoc[]
+Response
+include::{snippets}/member/find-me/http-response.adoc[]
+
+== 내 정보 수정
+Request
+include::{snippets}/member/update/http-request.adoc[]
+Response
+include::{snippets}/member/update/http-response.adoc[]
+
+== 탈퇴하기
+Request
+include::{snippets}/member/delete/http-request.adoc[]
+Response
+include::{snippets}/member/delete/http-response.adoc[]
+
+== 프로필 수정
+Request
+include::{snippets}/profile/update/http-request.adoc[]
+Response
+include::{snippets}/profile/update/http-response.adoc[]
+
+== 프로필 초기화
+Request
+include::{snippets}/profile/init/http-request.adoc[]
+Response
+include::{snippets}/profile/init/http-response.adoc[]
+
+== 예외처리
+=== 이미지
+|===
+| | 상태코드 | 비고
+
+| S3 연결 과정에서 문제 발생
+| 500
+| 두벅스 서버에서 S3 에 연결하기 위한 조건 불충분 (ex. 권한 없음 등)
+
+| S3 연결 시 문제 발생
+| 500
+| S3 내부에서 문제 발생
+|===

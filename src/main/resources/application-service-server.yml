@@ -1,0 +1,5 @@
+cors:
+  auth:
+    path: /api/v1/auth/**
+    yologa:
+      origin: https://api.dev.yologa.dobugs.co.kr/
