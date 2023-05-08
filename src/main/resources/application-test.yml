@@ -3,5 +3,5 @@ spring:
     activate:
       on-profile: test
     import:
-      - application-test-redis.yml
-      - application-test-db.yml
+      - test/application-test-db.yml
+      - test/application-test-redis.yml

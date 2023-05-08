@@ -3,5 +3,5 @@ spring:
     activate:
       on-profile: local
     import:
-      - application-local-redis.yml
-      - application-local-db.yml
+      - local/application-local-db.yml
+      - local/application-local-redis.yml
