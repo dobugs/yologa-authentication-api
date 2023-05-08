@@ -16,12 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.test.context.ActiveProfiles;
 
 import com.dobugs.yologaauthenticationapi.domain.OAuthToken;
 import com.dobugs.yologaauthenticationapi.domain.Provider;
 
-@ActiveProfiles("local")
 @DataRedisTest
 @DisplayName("Token 레포지토리 테스트")
 class TokenRepositoryTest {
