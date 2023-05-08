@@ -1,14 +1,13 @@
 spring:
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    username: yologa
-    password: yologa
-    url: jdbc:mysql://localhost:3306/yologa?characterEncoding=UTF-8
+    username: sa
+    url: jdbc:h2:~/yologatest;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
   jpa:
-    hibernate.ddl-auto: validate
-    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate.ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
         format_sql: true
     show-sql: true
 
