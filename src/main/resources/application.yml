@@ -1,10 +1,10 @@
 spring:
   profiles:
-    active: dev
+    active: test
   config:
     import:
-      - application-logging.yml
-      - application-service-server.yml
+      - common/application-logging.yml
+      - common/application-service-server.yml
       - yologa-security/application-aws.yml
       - yologa-security/application-jwt.yml
       - yologa-security/application-oauth2.yml

@@ -1,0 +1,7 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+    import:
+      - test/application-test-db.yml
+      - test/application-test-redis.yml
