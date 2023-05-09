@@ -14,12 +14,14 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.redis.DataRedisTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import com.dobugs.yologaauthenticationapi.domain.OAuthToken;
 import com.dobugs.yologaauthenticationapi.domain.Provider;
 
+@Import(EmbeddedRedisConfiguration.class)
 @DataRedisTest
 @DisplayName("Token 레포지토리 테스트")
 class TokenRepositoryTest {
